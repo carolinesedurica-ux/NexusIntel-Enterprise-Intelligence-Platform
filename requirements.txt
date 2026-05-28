@@ -1,0 +1,21 @@
+# NexusIntel — Enterprise Intelligence Platform
+# Bright Data Hackathon: Track 1 (GTM) + Track 2 (Finance) + Track 3 (Security)
+
+anthropic>=0.40.0
+langgraph>=0.2.0
+langchain-core>=0.3.0
+
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.12
+
+httpx>=0.28.0
+playwright>=1.49.0
+
+pydantic>=2.9.0
+pydantic-settings>=2.6.0
+
+python-dotenv>=1.0.0
+python-dateutil>=2.9.0
+pytz>=2024.2
+tenacity>=9.0.0
