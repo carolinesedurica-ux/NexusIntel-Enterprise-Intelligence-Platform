@@ -23,7 +23,8 @@ from typing import Any
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
@@ -55,6 +56,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import os as _os
+_static_dir = _os.path.join(_os.path.dirname(_os.path.dirname(__file__)), "static")
+if _os.path.isdir(_static_dir):
+    app.mount("/static", StaticFiles(directory=_static_dir), name="static")
+
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -71,6 +77,10 @@ def _run_and_cache(request_dict: dict) -> dict:
 
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return FileResponse(_os.path.join(_static_dir, "index.html"))
 
 @app.get("/health")
 async def health() -> dict:

@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexusIntel — Enterprise Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #020408;
+    --bg2:       #050c14;
+    --bg3:       #0a1628;
+    --gtm:       #bf00ff;
+    --gtm-dim:   #7a00a855;
+    --finance:   #ffcc00;
+    --fin-dim:   #ffcc0033;
+    --security:  #00ffcc;
+    --sec-dim:   #00ffcc33;
+    --danger:    #ff003c;
+    --accent:    #00d4ff;
+    --white:     #e8f4ff;
+    --muted:     #4a6080;
+    --grid:      #0d1f35;
+    --glow-gtm:  0 0 20px #bf00ff88, 0 0 60px #bf00ff33;
+    --glow-fin:  0 0 20px #ffcc0088, 0 0 60px #ffcc0033;
+    --glow-sec:  0 0 20px #00ffcc88, 0 0 60px #00ffcc33;
+    --glow-acc:  0 0 20px #00d4ff88, 0 0 60px #00d4ff33;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── CRT scanline overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.07) 2px,
+      rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Grid background ── */
+  .grid-bg {
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .content { position: relative; z-index: 1; }
+
+  /* ── Header ── */
+  header {
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid var(--grid);
+    background: linear-gradient(180deg, #000d1a 0%, transparent 100%);
+  }
+
+  .logo {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2rem, 6vw, 5rem);
+    letter-spacing: 0.15em;
+    background: linear-gradient(135deg, #00d4ff 0%, #bf00ff 50%, #ff003c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    position: relative;
+    display: inline-block;
+    animation: glitch 8s infinite;
+  }
+
+  .logo-sub {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    margin-top: 0.6rem;
+    text-shadow: 0 0 10px var(--accent);
+    opacity: 0.8;
+  }
+
+  .track-badges {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.2rem;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.45rem;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid;
+    letter-spacing: 0.15em;
+  }
+  .badge-gtm     { border-color: var(--gtm);      color: var(--gtm);      box-shadow: var(--glow-gtm); }
+  .badge-finance { border-color: var(--finance);   color: var(--finance);  box-shadow: var(--glow-fin); }
+  .badge-sec     { border-color: var(--security);  color: var(--security); box-shadow: var(--glow-sec); }
+
+  /* ── Query Form ── */
+  .query-section {
+    max-width: 860px;
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--grid);
+    padding: 2rem;
+    position: relative;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .panel-gtm::before     { background: linear-gradient(90deg, transparent, var(--gtm), transparent); }
+  .panel-finance::before { background: linear-gradient(90deg, transparent, var(--finance), transparent); }
+  .panel-sec::before     { background: linear-gradient(90deg, transparent, var(--security), transparent); }
+  .panel-accent::before  { background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+
+  .panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .panel-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  .dot-gtm     { background: var(--gtm);      box-shadow: 0 0 8px var(--gtm); }
+  .dot-finance { background: var(--finance);  box-shadow: 0 0 8px var(--finance); }
+  .dot-sec     { background: var(--security); box-shadow: 0 0 8px var(--security); }
+  .dot-accent  { background: var(--accent);   box-shadow: 0 0 8px var(--accent); }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: end;
+  }
+
+  label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    margin-bottom: 0.4rem;
+    font-family: 'Space Mono', monospace;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--grid);
+    border-bottom-color: var(--accent);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 20px #00d4ff22;
+  }
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .tracks-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .track-toggle {
+    display: none;
+  }
+  .track-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    padding: 0.6rem 1.1rem;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .track-toggle:checked + .track-label.gtm-lbl     { border-color: var(--gtm);     color: var(--gtm);     box-shadow: var(--glow-gtm); }
+  .track-toggle:checked + .track-label.fin-lbl     { border-color: var(--finance); color: var(--finance); box-shadow: var(--glow-fin); }
+  .track-toggle:checked + .track-label.sec-lbl     { border-color: var(--security);color: var(--security);box-shadow: var(--glow-sec); }
+
+  .btn-run {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.25em;
+    padding: 0.85rem 2.5rem;
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px #00d4ff33;
+    white-space: nowrap;
+  }
+  .btn-run:hover {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 0 40px #00d4ff88;
+  }
+  .btn-run:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ── Loading ── */
+  #loading {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+  }
+  .scanner {
+    width: 200px;
+    height: 2px;
+    background: var(--bg3);
+    margin: 1.5rem auto;
+    overflow: hidden;
+    position: relative;
+  }
+  .scanner-beam {
+    position: absolute;
+    left: -40%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 1.2s linear infinite;
+  }
+  .loading-text {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    animation: blink 1s step-end infinite;
+  }
+
+  /* ── Results ── */
+  #results { display: none; max-width: 1400px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  .results-header {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.3em;
+    padding: 1.5rem 0 1rem;
+    border-bottom: 1px solid var(--grid);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+  }
+  .req-id { color: var(--accent); font-size: 0.6rem; }
+
+  .tracks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .track-card {
+    background: var(--bg2);
+    border: 1px solid var(--grid);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .track-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .track-card.gtm::before      { background: var(--gtm); box-shadow: 0 0 15px var(--gtm); }
+  .track-card.finance::before  { background: var(--finance); box-shadow: 0 0 15px var(--finance); }
+  .track-card.security::before { background: var(--security); box-shadow: 0 0 15px var(--security); }
+
+  /* Corner decoration */
+  .track-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 40px; height: 40px;
+    border-top: 1px solid var(--grid);
+    border-left: 1px solid var(--grid);
+    opacity: 0.4;
+  }
+
+  .track-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--grid);
+  }
+  .track-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+  .track-name {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+  }
+  .gtm .track-name      { color: var(--gtm);      text-shadow: 0 0 10px var(--gtm); }
+  .finance .track-name  { color: var(--finance);  text-shadow: 0 0 10px var(--finance); }
+  .security .track-name { color: var(--security); text-shadow: 0 0 10px var(--security); }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+  }
+  .stat-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+  }
+  .stat-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+  .gtm .stat-value      { color: var(--gtm); }
+  .finance .stat-value  { color: var(--finance); }
+  .security .stat-value { color: var(--security); }
+
+  .risk-bar {
+    height: 4px;
+    background: var(--bg3);
+    margin: 0.3rem 0 1rem;
+    position: relative;
+  }
+  .risk-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ffcc, #ffcc00, #ff003c);
+    transition: width 1s ease;
+  }
+
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+  }
+  .chip {
+    font-size: 0.55rem;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid;
+    letter-spacing: 0.05em;
+    line-height: 1.5;
+  }
+  .chip-gtm      { border-color: var(--gtm);      color: var(--gtm);      background: var(--gtm-dim); }
+  .chip-finance  { border-color: var(--finance);  color: var(--finance);  background: var(--fin-dim); }
+  .chip-security { border-color: var(--security); color: var(--security); background: var(--sec-dim); }
+  .chip-danger   { border-color: var(--danger);   color: var(--danger);   background: #ff003c22; }
+  .chip-muted    { border-color: var(--muted);    color: var(--muted); }
+
+  .severity-badge {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    padding: 0.3rem 0.7rem;
+    letter-spacing: 0.1em;
+  }
+  .sev-low      { background: #00ffcc22; color: var(--security); border: 1px solid var(--security); }
+  .sev-medium   { background: #ffcc0022; color: var(--finance);  border: 1px solid var(--finance); }
+  .sev-high     { background: #ff003c22; color: var(--danger);   border: 1px solid var(--danger); }
+  .sev-critical { background: #ff003caa; color: #fff;            border: 1px solid var(--danger); animation: pulse 1s infinite; }
+
+  .item-list { margin-top: 0.8rem; }
+  .item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--grid);
+    font-size: 0.7rem;
+    line-height: 1.6;
+    color: #9bb5d0;
+  }
+  .item:last-child { border-bottom: none; }
+  .item strong { color: var(--white); }
+
+  /* ── Executive Summary ── */
+  #exec-panel {
+    background: var(--bg2);
+    border: 1px solid var(--accent);
+    padding: 2rem;
+    position: relative;
+    box-shadow: 0 0 40px #00d4ff18;
+    margin-bottom: 1.5rem;
+  }
+  #exec-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gtm), var(--accent), var(--security));
+    box-shadow: 0 0 20px var(--accent);
+  }
+
+  .exec-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-shadow: 0 0 10px var(--accent);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  #exec-text {
+    font-size: 0.85rem;
+    line-height: 1.9;
+    color: #c8dff0;
+  }
+
+  .priorities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .priority-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.9rem;
+    background: var(--bg3);
+    border-left: 3px solid var(--accent);
+    font-size: 0.68rem;
+    line-height: 1.6;
+    color: #9bb5d0;
+  }
+  .priority-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--accent);
+    opacity: 0.5;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  /* ── Errors ── */
+  #errors-panel {
+    display: none;
+    background: #1a0008;
+    border: 1px solid var(--danger);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 20px #ff003c22;
+  }
+  .error-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    color: var(--danger);
+    letter-spacing: 0.2em;
+    margin-bottom: 0.5rem;
+  }
+  .error-item { font-size: 0.65rem; color: #ff7799; padding: 0.2rem 0; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    border-top: 1px solid var(--grid);
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+  }
+  footer span { color: var(--accent); }
+
+  /* ── Animations ── */
+  @keyframes glitch {
+    0%, 92%, 100% { transform: none; filter: none; }
+    93% { transform: skew(-0.5deg); filter: hue-rotate(90deg); }
+    94% { transform: skew(0.5deg) translateX(3px); }
+    95% { transform: none; filter: hue-rotate(-90deg); }
+    96% { transform: translateX(-3px); }
+    97% { transform: none; filter: none; }
+  }
+
+  @keyframes scan {
+    0%   { left: -40%; }
+    100% { left: 100%; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .fade-in { animation: fadeIn 0.5s ease forwards; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    header { padding: 2rem 1rem 1.5rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .btn-run { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="content">
+
+<!-- ── Header ── -->
+<header>
+  <div class="logo">NEXUSINTEL</div>
+  <div class="logo-sub">ENTERPRISE INTELLIGENCE PLATFORM</div>
+  <div class="track-badges">
+    <span class="badge badge-gtm">◈ GTM INTELLIGENCE</span>
+    <span class="badge badge-finance">◈ FINANCE &amp; MARKET</span>
+    <span class="badge badge-sec">◈ SECURITY &amp; COMPLIANCE</span>
+  </div>
+</header>
+
+<!-- ── Query Form ── -->
+<section class="query-section">
+  <div class="panel panel-accent">
+    <div class="panel-title">
+      <span class="dot dot-accent"></span>
+      INTELLIGENCE QUERY
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label>TARGET COMPANY / MARKET SEGMENT</label>
+        <input type="text" id="target" placeholder="e.g. Salesforce, HubSpot, Stripe..." value="HubSpot">
+      </div>
+      <button class="btn-run" id="runBtn" onclick="runQuery()">▶ RUN</button>
+    </div>
+
+    <div>
+      <label>CONTEXT (OPTIONAL)</label>
+      <input type="text" id="context" placeholder="e.g. enterprise CRM market, fintech compliance..." style="margin-bottom:1.2rem">
+    </div>
+
+    <div>
+      <label>ACTIVE TRACKS</label>
+      <div class="tracks-row">
+        <input type="checkbox" class="track-toggle" id="t-gtm" value="gtm" checked>
+        <label class="track-label gtm-lbl" for="t-gtm">📈 GTM</label>
+
+        <input type="checkbox" class="track-toggle" id="t-fin" value="finance" checked>
+        <label class="track-label fin-lbl" for="t-fin">💹 FINANCE</label>
+
+        <input type="checkbox" class="track-toggle" id="t-sec" value="security" checked>
+        <label class="track-label sec-lbl" for="t-sec">🛡 SECURITY</label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Loading ── -->
+<div id="loading">
+  <div class="loading-text">SCANNING WEB INTELLIGENCE...</div>
+  <div class="scanner"><div class="scanner-beam"></div></div>
+  <div id="loadingStatus" style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin-top:0.5rem">INITIALISING AGENTS</div>
+</div>
+
+<!-- ── Results ── -->
+<section id="results">
+
+  <div class="results-header">
+    <span>INTELLIGENCE REPORT</span>
+    <span class="req-id" id="reqId"></span>
+  </div>
+
+  <div id="errors-panel">
+    <div class="error-title">⚠ PIPELINE ERRORS</div>
+    <div id="errorsList"></div>
+  </div>
+
+  <!-- Three-track cards -->
+  <div class="tracks-grid" id="tracksGrid"></div>
+
+  <!-- Executive Summary -->
+  <div id="exec-panel">
+    <div class="exec-title">
+      <span class="dot dot-accent" style="animation:pulse 1.5s infinite"></span>
+      EXECUTIVE INTELLIGENCE BRIEF
+    </div>
+    <div id="exec-text"></div>
+    <div class="priorities-grid" id="prioritiesGrid"></div>
+  </div>
+
+</section>
+
+<footer>
+  POWERED BY <span>BRIGHT DATA</span> × <span>CLAUDE AI</span> × <span>LANGGRAPH</span>
+  &nbsp;·&nbsp; NEXUSINTEL v1.0
+</footer>
+
+</div><!-- /content -->
+
+<script>
+const LOADING_MSGS = [
+  'INITIALISING AGENTS',
+  'CONNECTING TO BRIGHT DATA SERP API',
+  'SCRAPING COMPETITOR INTELLIGENCE',
+  'RUNNING GTM ANALYSIS',
+  'FETCHING REGULATORY FEEDS',
+  'SCANNING THREAT SURFACE',
+  'CROSS-REFERENCING SIGNALS',
+  'SYNTHESISING WITH CLAUDE AI',
+  'GENERATING EXECUTIVE BRIEF',
+];
+
+let loadingInterval;
+
+async function runQuery() {
+  const target  = document.getElementById('target').value.trim();
+  if (!target) return;
+
+  const tracks = ['gtm','finance','security'].filter(t =>
+    document.getElementById('t-' + (t === 'finance' ? 'fin' : t)).checked
+  );
+  if (!tracks.length) { alert('Select at least one track.'); return; }
+
+  const context = document.getElementById('context').value.trim();
+
+  // UI state
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+
+  let msgIdx = 0;
+  const statusEl = document.getElementById('loadingStatus');
+  loadingInterval = setInterval(() => {
+    statusEl.textContent = LOADING_MSGS[Math.min(msgIdx++, LOADING_MSGS.length - 1)];
+  }, 3500);
+
+  try {
+    const res = await fetch('/intelligence', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target, tracks, context: context || undefined }),
+    });
+    const data = await res.json();
+    renderReport(data);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    clearInterval(loadingInterval);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('runBtn').disabled = false;
+  }
+}
+
+function renderReport(d) {
+  document.getElementById('reqId').textContent = 'REQ: ' + (d.request_id || '').substring(0,8).toUpperCase();
+
+  // Errors
+  const errs = d.errors || [];
+  const errPanel = document.getElementById('errors-panel');
+  if (errs.length) {
+    errPanel.style.display = 'block';
+    document.getElementById('errorsList').innerHTML =
+      errs.map(e => `<div class="error-item">› ${esc(e)}</div>`).join('');
+  } else {
+    errPanel.style.display = 'none';
+  }
+
+  // Track cards
+  const grid = document.getElementById('tracksGrid');
+  grid.innerHTML = '';
+  if (d.gtm)      grid.appendChild(buildGTMCard(d.gtm));
+  if (d.finance)  grid.appendChild(buildFinanceCard(d.finance));
+  if (d.security) grid.appendChild(buildSecurityCard(d.security));
+
+  // Executive summary
+  document.getElementById('exec-text').textContent = d.executive_summary || 'No summary generated.';
+  const pGrid = document.getElementById('prioritiesGrid');
+  pGrid.innerHTML = (d.top_priorities || []).map((p, i) =>
+    `<div class="priority-item fade-in" style="animation-delay:${i*0.1}s">
+      <span class="priority-num">${i+1}</span>
+      <span>${esc(p)}</span>
+    </div>`
+  ).join('');
+
+  document.getElementById('results').style.display = 'block';
+  window.scrollTo({ top: document.getElementById('results').offsetTop - 20, behavior: 'smooth' });
+}
+
+function buildGTMCard(gtm) {
+  const competitors = gtm.competitors || [];
+  const signals     = gtm.buying_signals || [];
+
+  const compChips = competitors.slice(0,6).map(c =>
+    `<span class="chip chip-gtm">${esc(c.company)}</span>`
+  ).join('');
+
+  const sigItems = signals.slice(0,3).map(s =>
+    `<div class="item"><strong>[${esc(s.signal_type)}]</strong> ${esc(s.description?.slice(0,120) || '')}</div>`
+  ).join('') || `<div class="item" style="color:var(--muted)">No buying signals detected</div>`;
+
+  const positioning = gtm.market_positioning
+    ? `<div class="item" style="margin-top:0.5rem">${esc(gtm.market_positioning.slice(0,180))}</div>` : '';
+
+  return card('gtm', '📈', 'GTM INTELLIGENCE', `
+    <div class="stat-row">
+      <span class="stat-label">COMPETITORS IDENTIFIED</span>
+      <span class="stat-value">${competitors.length}</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">BUYING SIGNALS</span>
+      <span class="stat-value">${signals.length}</span>
+    </div>
+    <div class="chip-list" style="margin:0.8rem 0">${compChips || '<span class="chip chip-muted">NONE FOUND</span>'}</div>
+    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">BUYING SIGNALS</div>
+    <div class="item-list">${sigItems}</div>
+    ${positioning}
+  `);
+}
+
+function buildFinanceCard(fin) {
+  const risk    = fin.risk_score ?? 0;
+  const pricing = fin.pricing_data || [];
+  const alerts  = fin.regulatory_alerts || [];
+  const altSigs = fin.alternative_signals || [];
+  const pct     = (risk / 10 * 100).toFixed(0);
+
+  const pricingItems = pricing.slice(0,3).map(p => {
+    const price = p.price != null ? `$${p.price}` : '—';
+    return `<div class="item"><strong>${esc(p.product)}</strong> ${price} <span style="color:var(--muted)">${esc((p.metadata?.tier||''))}</span></div>`;
+  }).join('') || `<div class="item" style="color:var(--muted)">No pricing data extracted</div>`;
+
+  const alertItems = alerts.slice(0,2).map(a =>
+    `<div class="item"><strong>${esc(a.source)}</strong> ${esc(a.title?.slice(0,80)||'')}</div>`
+  ).join('') || `<div class="item" style="color:var(--muted)">No alerts detected</div>`;
+
+  return card('finance', '💹', 'FINANCE INTELLIGENCE', `
+    <div class="stat-row">
+      <span class="stat-label">RISK SCORE</span>
+      <span class="stat-value">${risk.toFixed(1)}<span style="font-size:0.7rem;opacity:0.5">/10</span></span>
+    </div>
+    <div class="risk-bar"><div class="risk-fill" style="width:${pct}%"></div></div>
+    <div class="stat-row">
+      <span class="stat-label">PRICING SIGNALS</span><span class="stat-value" style="font-size:1rem">${pricing.length}</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">REGULATORY ALERTS</span><span class="stat-value" style="font-size:1rem">${alerts.length}</span>
+    </div>
+    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">PRICING DATA</div>
+    <div class="item-list">${pricingItems}</div>
+    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">REG ALERTS</div>
+    <div class="item-list">${alertItems}</div>
+    ${fin.investment_summary ? `<div class="item" style="margin-top:0.5rem;color:#8aa0b8">${esc(fin.investment_summary.slice(0,200))}</div>` : ''}
+  `);
+}
+
+function buildSecurityCard(sec) {
+  const sev       = (sec.overall_severity || 'low').toLowerCase();
+  const threats   = sec.threat_indicators || [];
+  const compliance= sec.compliance_changes || [];
+  const exposure  = sec.brand_exposure || [];
+
+  const sevClass  = { low:'sev-low', medium:'sev-medium', high:'sev-high', critical:'sev-critical' }[sev] || 'sev-low';
+
+  const threatItems = threats.slice(0,3).map(t =>
+    `<div class="item">
+      <span class="chip chip-${t.severity === 'critical'||t.severity === 'high' ? 'danger':'security'}" style="font-size:0.5rem;padding:0.15rem 0.4rem">${t.severity.toUpperCase()}</span>
+      <span style="margin-left:0.4rem">${esc(t.description?.slice(0,110)||t.indicator_type)}</span>
+    </div>`
+  ).join('') || `<div class="item" style="color:var(--muted)">No threats detected</div>`;
+
+  const compItems = compliance.slice(0,2).map(c =>
+    `<div class="item"><strong>${esc(c.regulation?.slice(0,40))}</strong> — ${esc(c.summary?.slice(0,90)||'')}</div>`
+  ).join('') || `<div class="item" style="color:var(--muted)">No compliance changes</div>`;
+
+  return card('security', '🛡', 'SECURITY & COMPLIANCE', `
+    <div class="stat-row" style="margin-bottom:0.8rem">
+      <span class="stat-label">OVERALL SEVERITY</span>
+      <span class="severity-badge ${sevClass}">${sev.toUpperCase()}</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">THREAT INDICATORS</span><span class="stat-value">${threats.length}</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">COMPLIANCE CHANGES</span><span class="stat-value" style="font-size:1rem">${compliance.length}</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">BRAND EXPOSURES</span><span class="stat-value" style="font-size:1rem">${exposure.length}</span>
+    </div>
+    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">THREAT INDICATORS</div>
+    <div class="item-list">${threatItems}</div>
+    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">COMPLIANCE</div>
+    <div class="item-list">${compItems}</div>
+  `);
+}
+
+function card(cls, icon, title, body) {
+  const el = document.createElement('div');
+  el.className = `track-card ${cls} fade-in`;
+  el.innerHTML = `
+    <div class="track-header">
+      <span class="track-icon">${icon}</span>
+      <span class="track-name">${title}</span>
+    </div>
+    ${body}
+  `;
+  return el;
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Allow Enter key in inputs
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input[type=text]').forEach(el => {
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') runQuery(); });
+  });
+});
+</script>
+</body>
+</html>
