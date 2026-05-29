@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # Alerts
     alert_webhook_urls: str = ""
 
+    # AI/MP API
+    aimp_api_key: str = ""
+
     # ── Derived helpers ──────────────────────────────────────────
 
     @property
