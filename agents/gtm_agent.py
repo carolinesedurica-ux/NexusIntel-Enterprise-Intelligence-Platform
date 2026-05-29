@@ -193,7 +193,7 @@ class GTMAgent:
             f"https://{domain_guess}",
         ]
 
-                html_text = ""
+        html_text = ""
         final_url = urls_to_try[0]
         for url in urls_to_try:
             # Try Web Unlocker first, fall back to Scraping Browser

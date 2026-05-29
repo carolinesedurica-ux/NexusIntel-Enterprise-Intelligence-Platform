@@ -816,16 +816,16 @@ function renderVault() {
   list.innerHTML = archive.map(e => {
     const dt      = new Date(e.ts);
     const timeStr = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-    const tracks  = (e.tracks || []).map(t => {
+    const tracks  = (e.tracks || []).filter(Boolean).map(t => {
       const cls = { gtm:'chip-gtm', finance:'chip-finance', security:'chip-security' }[t] || 'chip-muted';
-      return `<span class="chip ${cls}" style="font-size:0.42rem;padding:0.15rem 0.4rem">${t.toUpperCase()}</span>`;
+      return `<span class="chip ${cls}" style="font-size:0.42rem;padding:0.15rem 0.4rem">${String(t).toUpperCase()}</span>`;
     }).join('');
     const sev = e.severity
-      ? `<span class="severity-badge sev-${e.severity.toLowerCase()}" style="font-size:0.42rem;padding:0.2rem 0.5rem">${e.severity.toUpperCase()}</span>`
+      ? `<span class="severity-badge sev-${String(e.severity).toLowerCase()}" style="font-size:0.42rem;padding:0.2rem 0.5rem">${String(e.severity).toUpperCase()}</span>`
       : '';
     return `
       <div class="vault-entry" onclick="loadFromArchive('${esc(e.id)}')">
-        <div class="vault-target">${esc(e.target.toUpperCase())}</div>
+        <div class="vault-target">${esc(String(e.target || '').toUpperCase())}</div>
         <div class="vault-chips">${tracks}${sev ? ' ' + sev : ''}</div>
         <span class="vault-time">${esc(timeStr)}</span>
         <div class="vault-actions">
@@ -862,8 +862,9 @@ async function runQuery() {
   const target = document.getElementById('target').value.trim();
   if (!target) return;
 
+  const idMap = { gtm: 'gtm', finance: 'fin', security: 'sec' };
   const tracks = ['gtm','finance','security'].filter(t =>
-    document.getElementById('t-' + (t === 'finance' ? 'fin' : t)).checked
+    document.getElementById('t-' + idMap[t])?.checked
   );
   if (!tracks.length) { alert('Select at least one track.'); return; }
 
@@ -885,11 +886,17 @@ async function runQuery() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ target, tracks, context: context || undefined }),
     });
+    if (!res.ok) {
+      let detail = `Server error ${res.status}`;
+      try { detail = (await res.json()).detail || detail; } catch {}
+      throw new Error(detail);
+    }
     const data = await res.json();
-    saveToArchive(data);
+    if (data && data.request_id) saveToArchive(data);
     renderReport(data);
   } catch (e) {
-    alert('Request failed: ' + e.message);
+    const msg = (e && e.message) ? e.message : String(e);
+    alert('Request failed: ' + msg);
   } finally {
     clearInterval(loadingInterval);
     document.getElementById('loading').style.display = 'none';
