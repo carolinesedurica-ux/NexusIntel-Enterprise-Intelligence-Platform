@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any, Optional
 from urllib.parse import urlparse
@@ -74,15 +75,18 @@ class GTMAgent:
         if not competitor_list:
             competitor_list = self._discover_competitors(target)
 
-        # ── Step 2: Profile each competitor ──────────────────────────────────
+        # ── Step 2: Profile each competitor — all 4 in parallel ──────────────
         competitor_profiles: list[CompetitorProfile] = []
-        for comp in competitor_list[:4]:  # cap at 4 to respect rate limits
-            try:
-                profile = self._profile_competitor(comp, target)
-                competitor_profiles.append(profile)
-            except Exception as exc:
-                logger.warning("[GTMAgent] Failed to profile '%s': %s", comp, exc)
-                errors.append(f"competitor_profile:{comp}:{exc}")
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            futures = {pool.submit(self._profile_competitor, comp, target): comp
+                       for comp in competitor_list[:4]}
+            for fut in as_completed(futures):
+                comp = futures[fut]
+                try:
+                    competitor_profiles.append(fut.result())
+                except Exception as exc:
+                    logger.warning("[GTMAgent] Failed to profile '%s': %s", comp, exc)
+                    errors.append(f"competitor_profile:{comp}:{exc}")
 
         # ── Step 3: Detect buying signals ────────────────────────────────────
         buying_signals: list[BuyingSignal] = []
@@ -259,11 +263,13 @@ class GTMAgent:
             f"{focus} customer reviews complaints 2024",
         ]
         all_results: list[dict] = []
-        for q in queries:
-            try:
-                all_results.extend(self._serp.google_search(q, num_results=5))
-            except Exception:
-                pass
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futures = [pool.submit(self._serp.google_search, q, 5) for q in queries]
+            for fut in as_completed(futures):
+                try:
+                    all_results.extend(fut.result())
+                except Exception:
+                    pass
 
         if not all_results:
             return []

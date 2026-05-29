@@ -16,6 +16,7 @@ Bright Data tools used:
 from __future__ import annotations
 
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Optional
 
 from models.schemas import (
@@ -236,38 +237,50 @@ class FinanceAgent:
         """Gather job velocity and news sentiment as alternative data."""
         signals: list[AlternativeDataSignal] = []
 
-        # Job postings via Indeed dataset
+        # Indeed, LinkedIn, and news SERP all fire in parallel
         job_titles: list[str] = []
-        try:
-            rows = self._scraper_api.collect_and_wait(
+        linkedin_data: list[dict] = []
+        news_titles: list[str] = []
+
+        def _fetch_indeed():
+            return self._scraper_api.collect_and_wait(
                 _INDEED_DATASET_ID,
                 [{"keyword": target, "location": "United States", "country": "US"}],
-                timeout_seconds=60,
+                timeout_seconds=45,
             )
-            job_titles = [r.get("job_title", "") for r in rows[:20] if r.get("job_title")]
-        except Exception as exc:
-            logger.debug("[FinanceAgent] Indeed dataset skipped: %s", exc)
 
-        # LinkedIn company profile via Scraper API
-        linkedin_data: list[dict] = []
-        try:
-            linkedin_data = self._scraper_api.collect_and_wait(
+        def _fetch_linkedin():
+            return self._scraper_api.collect_and_wait(
                 _LINKEDIN_COMPANY_DATASET,
                 [{"url": f"https://www.linkedin.com/company/{target.lower().replace(' ', '-')}"}],
-                timeout_seconds=60,
+                timeout_seconds=45,
             )
-        except Exception as exc:
-            logger.debug("[FinanceAgent] LinkedIn dataset skipped: %s", exc)
 
-        # News via SERP
-        news_titles: list[str] = []
-        try:
-            results = self._serp.google_search(
+        def _fetch_news():
+            return self._serp.google_search(
                 f"{target} funding layoff expansion acquisition 2024 2025", num_results=10
             )
-            news_titles = [r.get("title", "") for r in results if r.get("title")]
-        except Exception:
-            pass
+
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            indeed_fut = pool.submit(_fetch_indeed)
+            linkedin_fut = pool.submit(_fetch_linkedin)
+            news_fut = pool.submit(_fetch_news)
+
+            try:
+                rows = indeed_fut.result()
+                job_titles = [r.get("job_title", "") for r in rows[:20] if r.get("job_title")]
+            except Exception as exc:
+                logger.debug("[FinanceAgent] Indeed dataset skipped: %s", exc)
+
+            try:
+                linkedin_data = linkedin_fut.result()
+            except Exception as exc:
+                logger.debug("[FinanceAgent] LinkedIn dataset skipped: %s", exc)
+
+            try:
+                news_titles = [r.get("title", "") for r in news_fut.result() if r.get("title")]
+            except Exception:
+                pass
 
         # Claude interpretation
         if job_titles or news_titles:

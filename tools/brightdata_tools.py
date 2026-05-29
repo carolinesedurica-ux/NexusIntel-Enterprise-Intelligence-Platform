@@ -333,7 +333,7 @@ class WebScraperApi:
                 return "ready"
             if status == "failed":
                 raise RuntimeError(f"Snapshot {snapshot_id} failed")
-            time.sleep(5)
+            time.sleep(3)
         raise TimeoutError(f"Snapshot {snapshot_id} timed out after {timeout_seconds}s")
 
     def get_snapshot_data(self, snapshot_id: str) -> list[dict[str, Any]]:
@@ -389,7 +389,7 @@ class ScrapingBrowser:
             browser = await pw.chromium.connect_over_cdp(self._wss)
             page = await browser.new_page()
             try:
-                await page.goto(url, timeout=60000)
+                await page.goto(url, timeout=25000)
                 if wait_selector:
                     await page.wait_for_selector(wait_selector, timeout=15000)
                 html = await page.content()

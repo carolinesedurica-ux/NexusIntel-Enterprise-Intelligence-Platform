@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import logging
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Optional
 
 import httpx
@@ -109,23 +110,26 @@ class SecurityAgent:
             errors.append(f"threats:{exc}")
 
         # ── Step 2: Autonomous deep investigation (AI agentic loop) ──────────
-        # For every HIGH/CRITICAL indicator that has a source URL, the agent
-        # autonomously fetches that page and performs a structured deep-dive,
-        # surfacing additional related indicators without human instruction.
         deep_indicators: list[ThreatIndicator] = []
-        for ind in [
+        high_priority = [
             t for t in threat_indicators
             if t.severity in (Severity.HIGH, Severity.CRITICAL) and t.url
-        ][:3]:
-            try:
-                discovered = self._deep_investigate(target, ind)
-                deep_indicators.extend(discovered)
-                logger.info(
-                    "[SecurityAgent] Deep investigation of '%s' found %d more indicators",
-                    ind.indicator_type, len(discovered),
-                )
-            except Exception as exc:
-                logger.debug("[SecurityAgent] Deep investigation failed: %s", exc)
+        ][:2]
+        if high_priority:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                futures = {pool.submit(self._deep_investigate, target, ind): ind
+                           for ind in high_priority}
+                for fut in as_completed(futures):
+                    ind = futures[fut]
+                    try:
+                        discovered = fut.result()
+                        deep_indicators.extend(discovered)
+                        logger.info(
+                            "[SecurityAgent] Deep investigation of '%s' found %d more indicators",
+                            ind.indicator_type, len(discovered),
+                        )
+                    except Exception as exc:
+                        logger.debug("[SecurityAgent] Deep investigation failed: %s", exc)
         threat_indicators = (threat_indicators + deep_indicators)[:20]
 
         # ── Step 3: Compliance monitoring (all 4 sources) ────────────────────
@@ -146,13 +150,17 @@ class SecurityAgent:
                 vendors = []
 
         vendor_risks: list[VendorRiskProfile] = []
-        for vendor in (vendors or [])[:3]:
-            try:
-                profile = self._assess_vendor(vendor)
-                vendor_risks.append(profile)
-            except Exception as exc:
-                logger.warning("[SecurityAgent] Vendor assessment failed for %s: %s", vendor, exc)
-                errors.append(f"vendor:{vendor}:{exc}")
+        vendor_list = (vendors or [])[:3]
+        if vendor_list:
+            with ThreadPoolExecutor(max_workers=3) as pool:
+                futures = {pool.submit(self._assess_vendor, v): v for v in vendor_list}
+                for fut in as_completed(futures):
+                    v = futures[fut]
+                    try:
+                        vendor_risks.append(fut.result())
+                    except Exception as exc:
+                        logger.warning("[SecurityAgent] Vendor assessment failed for %s: %s", v, exc)
+                        errors.append(f"vendor:{v}:{exc}")
 
         # ── Step 5: Brand & credential exposure scan ─────────────────────────
         brand_exposure: list[str] = []
@@ -209,11 +217,13 @@ class SecurityAgent:
         """
         Pillar 1 — Multi-source open-web threat intelligence pipeline.
         Sources: SERP (6 targeted query types) + CISA advisories + NVD/CVE search.
+        All queries run in parallel via ThreadPoolExecutor.
         """
+        from urllib.parse import urlparse
         indicators: list[ThreatIndicator] = []
         domain = target.lower().replace(" ", "") + ".com"
+        _CVE_DOMAINS = {"nvd.nist.gov", "cve.org", "cve.mitre.org", "cvefeed.io", "cvedetails.com"}
 
-        # Six query types covering the full threat surface
         threat_queries = [
             (f'"{target}" data breach leak 2024 2025',                    "credential_leak"),
             (f'"{domain}" vulnerability CVE exploit',                      "vulnerability"),
@@ -221,67 +231,66 @@ class SecurityAgent:
             (f'site:pastebin.com OR site:hastebin.com "{domain}"',         "data_dump"),
             (f'site:github.com "{target}" password OR secret OR api_key',  "code_exposure"),
             (f'"{target}" ransomware malware attack incident 2024 2025',   "malware"),
+            (f'site:nvd.nist.gov OR site:cve.org "{target}" CVE 2024 2025', "_nvd"),
         ]
-        for query, default_type in threat_queries:
-            try:
-                results = self._serp.google_search(query, num_results=5)
-                for r in results:
-                    combined = (r.get("title", "") + " " + r.get("snippet", "")).lower()
-                    severity, indicator_type = self._classify_threat(combined)
-                    if severity:
-                        indicators.append(ThreatIndicator(
-                            indicator_type=indicator_type or default_type,
-                            value=r.get("url", domain),
-                            source=r.get("url", "serp"),
-                            severity=severity,
-                            description=f"{r.get('title', '')} — {r.get('snippet', '')}",
-                            url=r.get("url"),
-                        ))
-            except Exception as exc:
-                logger.debug("[SecurityAgent] Threat query failed: %s", exc)
 
-        # CISA active advisories
-        try:
+        def _fetch_cisa():
             cisa_url = _COMPLIANCE_SOURCES[0][1]
             try:
-                html = run_coro(self._browser.fetch_js_page(cisa_url))
+                return ("_cisa", self._unlocker.fetch_with_retry(cisa_url))
             except Exception:
-                html = self._unlocker.fetch_with_retry(cisa_url)
-            analysis = self._ai.analyze_threat_surface(target, html, "CISA Advisories")
-            for ind in analysis.get("indicators", [])[:5]:
-                indicators.append(ThreatIndicator(
-                    indicator_type=ind.get("type", "advisory"),
-                    value=ind.get("value", ""),
-                    source="CISA",
-                    severity=Severity(ind.get("severity", "low")),
-                    description=ind.get("description", ""),
-                ))
-        except Exception as exc:
-            logger.debug("[SecurityAgent] CISA threat scrape failed: %s", exc)
+                return ("_cisa", run_coro(self._browser.fetch_js_page(cisa_url)))
 
-        # NVD / CVE database search via SERP — only keep actual CVE/NVD URLs
-        _CVE_DOMAINS = {"nvd.nist.gov", "cve.org", "cve.mitre.org", "cvefeed.io", "cvedetails.com"}
-        try:
-            nvd_results = self._serp.google_search(
-                f'site:nvd.nist.gov OR site:cve.org "{target}" CVE 2024 2025',
-                num_results=5,
-            )
-            for r in nvd_results:
-                url = r.get("url", "")
-                from urllib.parse import urlparse
-                domain = urlparse(url).netloc.replace("www.", "")
-                if not any(d in domain for d in _CVE_DOMAINS):
-                    continue
-                indicators.append(ThreatIndicator(
-                    indicator_type="cve",
-                    value=r.get("title", "")[:100],
-                    source=url or "NVD",
-                    severity=Severity.HIGH,
-                    description=r.get("snippet", ""),
-                    url=url or None,
-                ))
-        except Exception:
-            pass
+        # All SERP queries + CISA scrape fire simultaneously
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            serp_futures = {pool.submit(self._serp.google_search, q, 5): t
+                            for q, t in threat_queries}
+            cisa_future = pool.submit(_fetch_cisa)
+
+            for fut in as_completed(serp_futures):
+                default_type = serp_futures[fut]
+                try:
+                    for r in fut.result():
+                        url = r.get("url", "")
+                        combined = (r.get("title", "") + " " + r.get("snippet", "")).lower()
+                        if default_type == "_nvd":
+                            parsed_domain = urlparse(url).netloc.replace("www.", "")
+                            if any(d in parsed_domain for d in _CVE_DOMAINS):
+                                indicators.append(ThreatIndicator(
+                                    indicator_type="cve",
+                                    value=r.get("title", "")[:100],
+                                    source=url or "NVD",
+                                    severity=Severity.HIGH,
+                                    description=r.get("snippet", ""),
+                                    url=url or None,
+                                ))
+                        else:
+                            severity, indicator_type = self._classify_threat(combined)
+                            if severity:
+                                indicators.append(ThreatIndicator(
+                                    indicator_type=indicator_type or default_type,
+                                    value=url or domain,
+                                    source=url or "serp",
+                                    severity=severity,
+                                    description=f"{r.get('title', '')} — {r.get('snippet', '')}",
+                                    url=url or None,
+                                ))
+                except Exception as exc:
+                    logger.debug("[SecurityAgent] Threat query failed: %s", exc)
+
+            try:
+                _, cisa_html = cisa_future.result()
+                analysis = self._ai.analyze_threat_surface(target, cisa_html, "CISA Advisories")
+                for ind in analysis.get("indicators", [])[:5]:
+                    indicators.append(ThreatIndicator(
+                        indicator_type=ind.get("type", "advisory"),
+                        value=ind.get("value", ""),
+                        source="CISA",
+                        severity=Severity(ind.get("severity", "low")),
+                        description=ind.get("description", ""),
+                    ))
+            except Exception as exc:
+                logger.debug("[SecurityAgent] CISA threat scrape failed: %s", exc)
 
         return indicators[:15]
 
@@ -332,18 +341,21 @@ class SecurityAgent:
         extract vendor names for subsequent risk assessment.
         """
         signals: list[str] = []
-        for query in [
+        vendor_queries = [
             f"{target} technology stack integrations uses powered by",
             f"{target} third-party vendors suppliers partners cloud",
-        ]:
-            try:
-                results = self._serp.google_search(query, num_results=5)
-                signals.extend(
-                    r.get("title", "") + ": " + r.get("snippet", "")
-                    for r in results
-                )
-            except Exception:
-                pass
+        ]
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(self._serp.google_search, q, 5)
+                       for q in vendor_queries]
+            for fut in as_completed(futures):
+                try:
+                    signals.extend(
+                        r.get("title", "") + ": " + r.get("snippet", "")
+                        for r in fut.result()
+                    )
+                except Exception:
+                    pass
 
         if not signals:
             return []
@@ -366,70 +378,82 @@ class SecurityAgent:
     def _monitor_compliance(self, context: Optional[str]) -> list[ComplianceChange]:
         """
         Pillars 2 & 6 — Scrape all four compliance sources for structured updates.
-        Every change includes an explicit action_required and severity rating.
+        SERP queries and all source scrapes run in parallel. Unlocker tried first
+        (fast); Scraping Browser only as fallback for JS-heavy pages.
         """
         changes: list[ComplianceChange] = []
-
-        # SERP sweep for recent regulatory news
         focus = context or "data privacy security cybersecurity"
-        for query in [
+
+        serp_queries = [
             f"{focus} regulatory change requirement deadline 2025",
             "GDPR CCPA HIPAA SOX PCI enforcement update 2025",
-        ]:
+        ]
+
+        def _scrape_source(source_name: str, source_url: str) -> tuple[str, str, str]:
             try:
-                results = self._serp.google_search(query, num_results=5)
-                for r in results[:3]:
-                    title_lower = r.get("title", "").lower()
-                    if any(kw in title_lower for kw in
-                           ["regulation", "law", "rule", "compliance",
-                            "requirement", "act", "directive", "enforcement"]):
-                        changes.append(ComplianceChange(
-                            regulation=r.get("title", "")[:80],
-                            jurisdiction="Global",
-                            summary=r.get("snippet", ""),
-                            severity=Severity.MEDIUM,
-                            action_required=(
-                                "Review this regulatory update and assess applicability "
-                                "to your organisation's compliance posture."
-                            ),
-                            source_url=r.get("url"),
-                        ))
+                html = self._unlocker.fetch_with_retry(source_url)
             except Exception:
-                pass
+                html = run_coro(self._browser.fetch_js_page(source_url))
+            return source_name, source_url, html
 
-        # Scrape all four compliance sources
-        for source_name, source_url in _COMPLIANCE_SOURCES:
-            try:
+        # SERP sweeps + all 4 source scrapes in parallel
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            serp_futures = [pool.submit(self._serp.google_search, q, 5)
+                            for q in serp_queries]
+            scrape_futures = {
+                pool.submit(_scrape_source, name, url): (name, url)
+                for name, url in _COMPLIANCE_SOURCES
+            }
+
+            for fut in serp_futures:
                 try:
-                    html = run_coro(self._browser.fetch_js_page(source_url))
+                    for r in fut.result()[:3]:
+                        title_lower = r.get("title", "").lower()
+                        if any(kw in title_lower for kw in
+                               ["regulation", "law", "rule", "compliance",
+                                "requirement", "act", "directive", "enforcement"]):
+                            changes.append(ComplianceChange(
+                                regulation=r.get("title", "")[:80],
+                                jurisdiction="Global",
+                                summary=r.get("snippet", ""),
+                                severity=Severity.MEDIUM,
+                                action_required=(
+                                    "Review this regulatory update and assess applicability "
+                                    "to your organisation's compliance posture."
+                                ),
+                                source_url=r.get("url"),
+                            ))
                 except Exception:
-                    html = self._unlocker.fetch_with_retry(source_url)
+                    pass
 
-                analysis = self._ai.parse_compliance_update(source_name, html)
-                for change in analysis.get("changes", [])[:3]:
-                    action = change.get("action_required", "")
-                    # Assign severity based on urgency keywords in the action
-                    sev = (
-                        Severity.HIGH
-                        if any(k in action.lower() for k in
-                               ["immediate", "critical", "urgent", "mandatory", "required by"])
-                        else Severity.MEDIUM
-                    )
-                    changes.append(ComplianceChange(
-                        regulation=change.get("regulation", source_name),
-                        jurisdiction=change.get("jurisdiction", "US"),
-                        summary=change.get("summary", ""),
-                        effective_date=change.get("effective_date"),
-                        severity=sev,
-                        action_required=(
-                            action
-                            if action
-                            else f"Review {source_name} update and assess impact on compliance posture."
-                        ),
-                        source_url=source_url,
-                    ))
-            except Exception as exc:
-                logger.debug("[SecurityAgent] Compliance source '%s' failed: %s", source_name, exc)
+            for fut in as_completed(scrape_futures):
+                source_name, source_url = scrape_futures[fut]
+                try:
+                    _, _, html = fut.result()
+                    analysis = self._ai.parse_compliance_update(source_name, html)
+                    for change in analysis.get("changes", [])[:3]:
+                        action = change.get("action_required", "")
+                        sev = (
+                            Severity.HIGH
+                            if any(k in action.lower() for k in
+                                   ["immediate", "critical", "urgent", "mandatory", "required by"])
+                            else Severity.MEDIUM
+                        )
+                        changes.append(ComplianceChange(
+                            regulation=change.get("regulation", source_name),
+                            jurisdiction=change.get("jurisdiction", "US"),
+                            summary=change.get("summary", ""),
+                            effective_date=change.get("effective_date"),
+                            severity=sev,
+                            action_required=(
+                                action
+                                if action
+                                else f"Review {source_name} update and assess impact on compliance posture."
+                            ),
+                            source_url=source_url,
+                        ))
+                except Exception as exc:
+                    logger.debug("[SecurityAgent] Compliance source '%s' failed: %s", source_name, exc)
 
         return changes[:12]
 
@@ -442,19 +466,22 @@ class SecurityAgent:
         domain = vendor.lower().replace(" ", "") + ".com"
         signals: list[str] = []
 
-        for query in [
+        vendor_risk_queries = [
             f"{vendor} security incident data breach 2024 2025",
             f"{vendor} financial trouble layoff bankruptcy restructure",
             f"{vendor} regulatory fine violation GDPR SOC2",
-        ]:
-            try:
-                results = self._serp.google_search(query, num_results=3)
-                signals.extend(
-                    r.get("title", "") + ": " + r.get("snippet", "")
-                    for r in results
-                )
-            except Exception:
-                pass
+        ]
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futures = [pool.submit(self._serp.google_search, q, 3)
+                       for q in vendor_risk_queries]
+            for fut in as_completed(futures):
+                try:
+                    signals.extend(
+                        r.get("title", "") + ": " + r.get("snippet", "")
+                        for r in fut.result()
+                    )
+                except Exception:
+                    pass
 
         try:
             html = self._unlocker.fetch_with_retry(f"https://{domain}/security")
@@ -489,21 +516,24 @@ class SecurityAgent:
             f'"{domain}" exposed S3 bucket OR git config OR .env file',
             f'inurl:"{domain}" filetype:sql OR filetype:log OR filetype:csv',
         ]
-        for query in exposure_queries:
-            try:
-                results = self._serp.google_search(query, num_results=5)
-                for r in results:
-                    combined = (r.get("title", "") + " " + r.get("snippet", "")).lower()
-                    if any(kw in combined for kw in [
-                        "exposed", "leaked", "dump", "credentials", "abuse",
-                        "fake", "phish", "password", "secret", "token", "key",
-                        "bucket", "misconfigured", "typosquat",
-                    ]):
-                        raw_findings.append(
-                            f"{r.get('title', '')} ({r.get('url', '')})"
-                        )
-            except Exception:
-                pass
+        _exposure_kw = {
+            "exposed", "leaked", "dump", "credentials", "abuse",
+            "fake", "phish", "password", "secret", "token", "key",
+            "bucket", "misconfigured", "typosquat",
+        }
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            futures = [pool.submit(self._serp.google_search, q, 5)
+                       for q in exposure_queries]
+            for fut in as_completed(futures):
+                try:
+                    for r in fut.result():
+                        combined = (r.get("title", "") + " " + r.get("snippet", "")).lower()
+                        if any(kw in combined for kw in _exposure_kw):
+                            raw_findings.append(
+                                f"{r.get('title', '')} ({r.get('url', '')})"
+                            )
+                except Exception:
+                    pass
 
         return list(dict.fromkeys(raw_findings))[:10]
 
