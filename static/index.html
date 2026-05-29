@@ -8,167 +8,140 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #020408;
-    --bg2:       #050c14;
-    --bg3:       #0a1628;
-    --gtm:       #bf00ff;
-    --gtm-dim:   #7a00a855;
-    --finance:   #ffcc00;
-    --fin-dim:   #ffcc0033;
-    --security:  #00ffcc;
-    --sec-dim:   #00ffcc33;
-    --danger:    #ff003c;
-    --accent:    #00d4ff;
-    --white:     #e8f4ff;
-    --muted:     #4a6080;
-    --grid:      #0d1f35;
-    --glow-gtm:  0 0 20px #bf00ff88, 0 0 60px #bf00ff33;
-    --glow-fin:  0 0 20px #ffcc0088, 0 0 60px #ffcc0033;
-    --glow-sec:  0 0 20px #00ffcc88, 0 0 60px #00ffcc33;
-    --glow-acc:  0 0 20px #00d4ff88, 0 0 60px #00d4ff33;
+    --bg:       #020408;
+    --bg2:      #050c14;
+    --bg3:      #0a1628;
+    --gtm:      #bf00ff;
+    --gtm-dim:  #7a00a855;
+    --finance:  #ffcc00;
+    --fin-dim:  #ffcc0033;
+    --security: #00ffcc;
+    --sec-dim:  #00ffcc33;
+    --danger:   #ff003c;
+    --accent:   #00d4ff;
+    --white:    #e8f4ff;
+    --muted:    #4a6080;
+    --grid:     #0d1f35;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     background: var(--bg);
     color: var(--white);
     font-family: 'Space Mono', monospace;
-    min-height: 100vh;
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(
-      0deg, transparent, transparent 2px,
-      rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
-    );
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
     pointer-events: none;
     z-index: 9999;
   }
-
   .grid-bg {
     position: fixed; inset: 0;
-    background-image:
-      linear-gradient(var(--grid) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-image: linear-gradient(var(--grid) 1px,transparent 1px), linear-gradient(90deg,var(--grid) 1px,transparent 1px);
     background-size: 40px 40px;
-    opacity: 0.4;
+    opacity: 0.35;
     pointer-events: none;
     z-index: 0;
   }
 
-  .content { position: relative; z-index: 1; }
-
+  /* ── Header ── */
   header {
-    padding: 3rem 2rem 2rem;
-    text-align: center;
+    position: relative; z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 2rem;
+    background: linear-gradient(90deg, #000d1a, #020a18);
     border-bottom: 1px solid var(--grid);
-    background: linear-gradient(180deg, #000d1a 0%, transparent 100%);
+    flex-shrink: 0;
   }
-
   .logo {
     font-family: 'Orbitron', sans-serif;
     font-weight: 900;
-    font-size: clamp(2rem, 6vw, 5rem);
-    letter-spacing: 0.15em;
+    font-size: 1.5rem;
+    letter-spacing: 0.2em;
     background: linear-gradient(135deg, #00d4ff 0%, #bf00ff 50%, #ff003c 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    display: inline-block;
     animation: glitch 8s infinite;
   }
-
   .logo-sub {
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.55rem;
+    font-size: 0.4rem;
     color: var(--accent);
-    letter-spacing: 0.3em;
-    margin-top: 0.6rem;
-    text-shadow: 0 0 10px var(--accent);
-    opacity: 0.8;
+    letter-spacing: 0.25em;
+    margin-top: 0.2rem;
+    opacity: 0.7;
   }
-
-  .track-badges {
+  .header-badges {
     display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1.2rem;
+    gap: 0.6rem;
     flex-wrap: wrap;
   }
-
   .badge {
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.45rem;
-    padding: 0.4rem 0.9rem;
+    font-size: 0.38rem;
+    padding: 0.3rem 0.7rem;
     border: 1px solid;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.1em;
   }
-  .badge-gtm     { border-color: var(--gtm);      color: var(--gtm);      box-shadow: var(--glow-gtm); }
-  .badge-finance { border-color: var(--finance);   color: var(--finance);  box-shadow: var(--glow-fin); }
-  .badge-sec     { border-color: var(--security);  color: var(--security); box-shadow: var(--glow-sec); }
+  .badge-gtm     { border-color: var(--gtm);     color: var(--gtm);     box-shadow: 0 0 10px #bf00ff44; }
+  .badge-finance { border-color: var(--finance);  color: var(--finance); box-shadow: 0 0 10px #ffcc0044; }
+  .badge-sec     { border-color: var(--security); color: var(--security);box-shadow: 0 0 10px #00ffcc44; }
 
-  .query-section {
-    max-width: 860px;
-    margin: 3rem auto;
-    padding: 0 1.5rem;
+  /* ── App shell (sidebar + main) ── */
+  .app-shell {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    flex: 1;
+    overflow: hidden;
   }
 
-  .panel {
+  /* ── Left sidebar ── */
+  .sidebar {
     background: var(--bg2);
-    border: 1px solid var(--grid);
-    padding: 2rem;
-    position: relative;
+    border-right: 1px solid var(--grid);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.2rem;
   }
-  .panel::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-  }
-  .panel-gtm::before     { background: linear-gradient(90deg, transparent, var(--gtm), transparent); }
-  .panel-finance::before { background: linear-gradient(90deg, transparent, var(--finance), transparent); }
-  .panel-sec::before     { background: linear-gradient(90deg, transparent, var(--security), transparent); }
-  .panel-accent::before  { background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--grid); }
 
-  .panel-title {
+  .panel-label {
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     letter-spacing: 0.25em;
-    margin-bottom: 1.5rem;
+    color: var(--muted);
+    margin-bottom: 0.8rem;
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    gap: 0.5rem;
   }
-  .panel-title .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-  .dot-gtm     { background: var(--gtm);      box-shadow: 0 0 8px var(--gtm); }
-  .dot-finance { background: var(--finance);  box-shadow: 0 0 8px var(--finance); }
-  .dot-sec     { background: var(--security); box-shadow: 0 0 8px var(--security); }
-  .dot-accent  { background: var(--accent);   box-shadow: 0 0 8px var(--accent); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; animation: pulse 2s infinite; }
+  .dot-accent  { background: var(--accent);   box-shadow: 0 0 6px var(--accent); }
+  .dot-gtm     { background: var(--gtm);      box-shadow: 0 0 6px var(--gtm); }
+  .dot-sec     { background: var(--security); box-shadow: 0 0 6px var(--security); }
 
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    align-items: end;
-  }
-
+  .form-block { margin-bottom: 0.7rem; }
   label {
     display: block;
-    font-size: 0.65rem;
+    font-size: 0.55rem;
     color: var(--muted);
-    letter-spacing: 0.2em;
-    margin-bottom: 0.4rem;
+    letter-spacing: 0.18em;
+    margin-bottom: 0.3rem;
   }
-
   input[type="text"] {
     width: 100%;
     background: var(--bg3);
@@ -176,343 +149,273 @@
     border-bottom-color: var(--accent);
     color: var(--white);
     font-family: 'Space Mono', monospace;
-    font-size: 1rem;
-    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
-  input[type="text"]:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent), 0 0 20px #00d4ff22;
-  }
+  input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 12px #00d4ff1a; }
   input[type="text"]::placeholder { color: var(--muted); }
 
-  .tracks-row {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-  }
+  .tracks-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
   .track-toggle { display: none; }
   .track-label {
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.5rem;
-    padding: 0.6rem 1.1rem;
+    font-size: 0.42rem;
+    padding: 0.5rem 0.8rem;
     border: 1px solid var(--muted);
     color: var(--muted);
     cursor: pointer;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     transition: all 0.2s;
     user-select: none;
   }
-  .track-toggle:checked + .track-label.gtm-lbl  { border-color: var(--gtm);      color: var(--gtm);      box-shadow: var(--glow-gtm); }
-  .track-toggle:checked + .track-label.fin-lbl  { border-color: var(--finance);  color: var(--finance);  box-shadow: var(--glow-fin); }
-  .track-toggle:checked + .track-label.sec-lbl  { border-color: var(--security); color: var(--security); box-shadow: var(--glow-sec); }
+  .track-toggle:checked + .track-label.gtm-lbl  { border-color: var(--gtm);     color: var(--gtm);     box-shadow: 0 0 10px #bf00ff44; }
+  .track-toggle:checked + .track-label.fin-lbl  { border-color: var(--finance); color: var(--finance); box-shadow: 0 0 10px #ffcc0044; }
+  .track-toggle:checked + .track-label.sec-lbl  { border-color: var(--security);color: var(--security);box-shadow: 0 0 10px #00ffcc44; }
 
   .btn-run {
+    width: 100%;
     font-family: 'Orbitron', sans-serif;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     letter-spacing: 0.25em;
-    padding: 0.85rem 2.5rem;
+    padding: 0.8rem;
     background: transparent;
     border: 2px solid var(--accent);
     color: var(--accent);
     cursor: pointer;
     text-transform: uppercase;
     transition: all 0.2s;
-    box-shadow: 0 0 20px #00d4ff33;
-    white-space: nowrap;
+    box-shadow: 0 0 15px #00d4ff22;
   }
-  .btn-run:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 40px #00d4ff88; }
-  .btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-run:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 30px #00d4ff66; }
+  .btn-run:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  /* ── Archive Vault ── */
-  .vault-section {
-    max-width: 860px;
-    margin: 0 auto 2rem;
-    padding: 0 1.5rem;
+  /* ── Sidebar divider ── */
+  .sidebar-divider {
+    height: 1px;
+    background: var(--grid);
+    margin: 0.2rem 0;
   }
 
+  /* ── Archive vault (sidebar) ── */
   .vault-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.7rem;
-    margin-bottom: 0;
+    gap: 0.5rem;
     cursor: pointer;
     user-select: none;
   }
-
-  .vault-toggle-btn {
-    background: transparent;
-    border: 1px solid var(--muted);
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    padding: 0.2rem 0.6rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-left: auto;
-  }
-  .vault-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
-
   .vault-count-badge {
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     color: var(--gtm);
     background: var(--gtm-dim);
     border: 1px solid var(--gtm);
-    padding: 0.15rem 0.5rem;
-    margin-left: 0.3rem;
+    padding: 0.1rem 0.4rem;
   }
+  .vault-toggle-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    font-size: 0.5rem;
+    padding: 0.15rem 0.4rem;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    transition: all 0.15s;
+  }
+  .vault-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  #vaultBody { margin-top: 1.2rem; }
-
+  #vaultBody { margin-top: 0.6rem; }
   .vault-entry {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    padding: 0.8rem 1rem;
+    padding: 0.6rem 0.7rem;
     background: var(--bg3);
     border: 1px solid var(--grid);
-    border-left: 3px solid var(--gtm);
-    margin-bottom: 0.5rem;
+    border-left: 2px solid var(--gtm);
+    margin-bottom: 0.4rem;
     cursor: pointer;
-    transition: all 0.2s;
-    flex-wrap: wrap;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
-  .vault-entry:hover {
-    border-color: var(--accent);
-    border-left-color: var(--accent);
-    box-shadow: 0 0 15px #00d4ff18;
-    background: #0a1e30;
-  }
-
-  .vault-target {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--white);
-    letter-spacing: 0.1em;
-    min-width: 100px;
-  }
-
-  .vault-time {
-    font-size: 0.55rem;
+  .vault-entry:hover { border-color: var(--accent); border-left-color: var(--accent); background: #0a1e30; }
+  .vault-entry-top { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
+  .vault-target { font-family: 'Orbitron', sans-serif; font-size: 0.62rem; font-weight: 700; color: var(--white); letter-spacing: 0.08em; }
+  .vault-del-btn {
+    background: transparent;
+    border: none;
     color: var(--muted);
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-  }
-
-  .vault-chips { display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; }
-
-  .vault-actions { margin-left: auto; display: flex; gap: 0.4rem; }
-
-  .btn-vault-load {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.42rem;
-    padding: 0.3rem 0.6rem;
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
     cursor: pointer;
-    letter-spacing: 0.05em;
-    transition: all 0.15s;
-  }
-  .btn-vault-load:hover { background: var(--accent); color: var(--bg); }
-
-  .btn-vault-del {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     line-height: 1;
-    background: transparent;
-    border: 1px solid #ff003c55;
-    color: var(--danger);
-    cursor: pointer;
-    padding: 0.2rem 0.45rem;
-    transition: all 0.15s;
+    padding: 0 0.2rem;
+    flex-shrink: 0;
+    transition: color 0.15s;
   }
-  .btn-vault-del:hover { background: var(--danger); color: var(--bg); }
-
+  .vault-del-btn:hover { color: var(--danger); }
+  .vault-meta { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+  .vault-time { font-size: 0.5rem; color: var(--muted); }
   .vault-empty {
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.5rem;
+    font-size: 0.42rem;
     color: var(--muted);
-    letter-spacing: 0.2em;
+    letter-spacing: 0.15em;
     text-align: center;
-    padding: 1.5rem 0;
+    padding: 1rem 0;
   }
 
-  /* ── Loading ── */
-  #loading { display: none; text-align: center; padding: 3rem; }
-  .scanner {
-    width: 200px; height: 2px;
-    background: var(--bg3);
-    margin: 1.5rem auto;
-    overflow: hidden;
-    position: relative;
+  /* ── Main results window ── */
+  .results-window {
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
   }
-  .scanner-beam {
-    position: absolute; left: -40%;
-    width: 40%; height: 100%;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    animation: scan 1.2s linear infinite;
+  .results-window::-webkit-scrollbar { width: 4px; }
+  .results-window::-webkit-scrollbar-thumb { background: var(--grid); }
+
+  /* ── Idle state ── */
+  #idle-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    gap: 1.2rem;
+    padding: 3rem;
   }
-  .loading-text {
+  .idle-icon {
+    font-size: 3.5rem;
+    opacity: 0.2;
+    filter: grayscale(1);
+  }
+  .idle-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+  }
+  .idle-hint {
+    font-size: 0.6rem;
+    color: var(--muted);
+    opacity: 0.6;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Loading state (in main window) ── */
+  #loading-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    gap: 1rem;
+    padding: 3rem;
+  }
+  .loading-title {
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.55rem;
+    font-size: 0.6rem;
     color: var(--accent);
     letter-spacing: 0.2em;
     animation: blink 1s step-end infinite;
   }
+  .scanner { width: 240px; height: 2px; background: var(--bg3); overflow: hidden; position: relative; margin: 0.5rem auto; }
+  .scanner-beam {
+    position: absolute; left: -40%; width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 1.2s linear infinite;
+  }
+  .loading-status { font-size: 0.55rem; color: var(--muted); letter-spacing: 0.12em; }
+  .loading-target { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: var(--accent); letter-spacing: 0.2em; }
 
-  /* ── Results ── */
-  #results { display: none; max-width: 1400px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+  /* ── Results content ── */
+  #results-content { display: none; }
 
-  .results-header {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.7rem;
-    color: var(--muted);
-    letter-spacing: 0.3em;
-    padding: 1.5rem 0 1rem;
-    border-bottom: 1px solid var(--grid);
-    margin-bottom: 2rem;
+  .results-meta {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    background: var(--bg3);
+    border: 1px solid var(--grid);
+    border-left: 3px solid var(--accent);
+    font-size: 0.6rem;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  .req-id { color: var(--accent); font-size: 0.6rem; }
+  .results-target { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: var(--accent); letter-spacing: 0.15em; }
+  .results-req { color: var(--muted); font-size: 0.55rem; }
 
   .tracks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
   }
 
+  /* ── Track card ── */
   .track-card {
     background: var(--bg2);
     border: 1px solid var(--grid);
-    padding: 1.5rem;
+    padding: 1.2rem;
     position: relative;
     overflow: hidden;
   }
-  .track-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
-  .track-card.gtm::before      { background: var(--gtm);      box-shadow: 0 0 15px var(--gtm); }
-  .track-card.finance::before  { background: var(--finance);  box-shadow: 0 0 15px var(--finance); }
-  .track-card.security::before { background: var(--security); box-shadow: 0 0 15px var(--security); }
-  .track-card::after {
-    content: '';
-    position: absolute;
-    bottom: 0; right: 0;
-    width: 40px; height: 40px;
-    border-top: 1px solid var(--grid);
-    border-left: 1px solid var(--grid);
-    opacity: 0.4;
-  }
+  .track-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .track-card::after  { content: ''; position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; border-top: 1px solid var(--grid); border-left: 1px solid var(--grid); opacity: 0.3; }
+  .track-card.gtm::before      { background: var(--gtm);      box-shadow: 0 0 12px var(--gtm); }
+  .track-card.finance::before  { background: var(--finance);  box-shadow: 0 0 12px var(--finance); }
+  .track-card.security::before { background: var(--security); box-shadow: 0 0 12px var(--security); }
 
-  .track-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.2rem;
-    padding-bottom: 0.8rem;
-    border-bottom: 1px solid var(--grid);
-  }
-  .track-icon { font-size: 1.4rem; line-height: 1; }
-  .track-name {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.2em;
-  }
-  .gtm .track-name      { color: var(--gtm);      text-shadow: 0 0 10px var(--gtm); }
-  .finance .track-name  { color: var(--finance);  text-shadow: 0 0 10px var(--finance); }
-  .security .track-name { color: var(--security); text-shadow: 0 0 10px var(--security); }
+  .track-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--grid); }
+  .track-icon { font-size: 1.2rem; }
+  .track-name { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.18em; }
+  .gtm .track-name      { color: var(--gtm);      text-shadow: 0 0 8px var(--gtm); }
+  .finance .track-name  { color: var(--finance);  text-shadow: 0 0 8px var(--finance); }
+  .security .track-name { color: var(--security); text-shadow: 0 0 8px var(--security); }
 
-  .stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0.5rem;
-  }
-  .stat-label { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.15em; }
-  .stat-value { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; }
+  .stat-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem; }
+  .stat-label { font-size: 0.55rem; color: var(--muted); letter-spacing: 0.12em; }
+  .stat-value { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; font-weight: 700; }
   .gtm .stat-value      { color: var(--gtm); }
   .finance .stat-value  { color: var(--finance); }
   .security .stat-value { color: var(--security); }
 
-  .risk-bar { height: 4px; background: var(--bg3); margin: 0.3rem 0 1rem; position: relative; }
-  .risk-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #00ffcc, #ffcc00, #ff003c);
-    transition: width 1s ease;
-  }
+  .risk-bar { height: 3px; background: var(--bg3); margin: 0.2rem 0 0.8rem; }
+  .risk-fill { height: 100%; background: linear-gradient(90deg, #00ffcc, #ffcc00, #ff003c); transition: width 1s ease; }
 
-  .chip-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
-  .chip {
-    font-size: 0.55rem;
-    padding: 0.25rem 0.6rem;
-    border: 1px solid;
-    letter-spacing: 0.05em;
-    line-height: 1.5;
-  }
+  .chip-list { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.5rem 0; }
+  .chip { font-size: 0.48rem; padding: 0.2rem 0.5rem; border: 1px solid; letter-spacing: 0.04em; line-height: 1.5; }
   .chip-gtm      { border-color: var(--gtm);      color: var(--gtm);      background: var(--gtm-dim); }
   .chip-finance  { border-color: var(--finance);  color: var(--finance);  background: var(--fin-dim); }
   .chip-security { border-color: var(--security); color: var(--security); background: var(--sec-dim); }
   .chip-danger   { border-color: var(--danger);   color: var(--danger);   background: #ff003c22; }
   .chip-muted    { border-color: var(--muted);    color: var(--muted); }
 
-  .severity-badge {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.5rem;
-    padding: 0.3rem 0.7rem;
-    letter-spacing: 0.1em;
-  }
-  .sev-low      { background: #00ffcc22; color: var(--security); border: 1px solid var(--security); }
-  .sev-medium   { background: #ffcc0022; color: var(--finance);  border: 1px solid var(--finance); }
-  .sev-high     { background: #ff003c22; color: var(--danger);   border: 1px solid var(--danger); }
-  .sev-critical { background: #ff003caa; color: #fff;            border: 1px solid var(--danger); animation: pulse 1s infinite; }
+  .severity-badge { font-family: 'Press Start 2P', monospace; font-size: 0.45rem; padding: 0.25rem 0.6rem; letter-spacing: 0.08em; }
+  .sev-low      { background: #00ffcc1a; color: var(--security); border: 1px solid var(--security); }
+  .sev-medium   { background: #ffcc001a; color: var(--finance);  border: 1px solid var(--finance); }
+  .sev-high     { background: #ff003c1a; color: var(--danger);   border: 1px solid var(--danger); }
+  .sev-critical { background: #ff003c88; color: #fff;            border: 1px solid var(--danger); animation: pulse 1s infinite; }
 
-  .item-list { margin-top: 0.8rem; }
-  .item {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--grid);
-    font-size: 0.7rem;
-    line-height: 1.6;
-    color: #9bb5d0;
-  }
+  .item-list { margin-top: 0.6rem; }
+  .item { padding: 0.4rem 0; border-bottom: 1px solid var(--grid); font-size: 0.63rem; line-height: 1.6; color: #9bb5d0; }
   .item:last-child { border-bottom: none; }
   .item strong { color: var(--white); }
 
-  /* ── Detail Drawer ── */
+  /* ── Detail drawer ── */
   .detail-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-top: 1rem;
-    padding-top: 0.8rem;
-    border-top: 1px solid var(--grid);
-    cursor: pointer;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.42rem;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-    background: none;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-    width: 100%;
-    text-align: left;
-    transition: color 0.2s;
-    user-select: none;
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-top: 0.8rem; padding-top: 0.7rem; border-top: 1px solid var(--grid);
+    cursor: pointer; font-family: 'Press Start 2P', monospace; font-size: 0.38rem;
+    letter-spacing: 0.1em; color: var(--muted); background: none;
+    border-left: none; border-right: none; border-bottom: none;
+    width: 100%; text-align: left; transition: color 0.2s; user-select: none;
   }
   .gtm .detail-toggle:hover      { color: var(--gtm); }
   .finance .detail-toggle:hover  { color: var(--finance); }
@@ -520,265 +423,204 @@
   .detail-toggle .arrow { transition: transform 0.2s; display: inline-block; }
   .detail-toggle.open .arrow { transform: rotate(180deg); }
 
-  .detail-drawer {
-    display: none;
-    margin-top: 0.8rem;
-    padding-top: 0.8rem;
-    border-top: 1px solid var(--grid);
-    animation: fadeIn 0.25s ease;
-  }
+  .detail-drawer { display: none; margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--grid); animation: fadeIn 0.2s ease; }
   .detail-drawer.open { display: block; }
 
-  .detail-section-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.55rem;
-    letter-spacing: 0.25em;
-    color: var(--muted);
-    margin: 1rem 0 0.4rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid var(--grid);
-  }
+  .detail-section-title { font-family: 'Orbitron', sans-serif; font-size: 0.5rem; letter-spacing: 0.2em; color: var(--muted); margin: 0.8rem 0 0.3rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--grid); }
   .detail-section-title:first-child { margin-top: 0; }
-
-  .detail-item {
-    padding: 0.6rem 0.7rem;
-    margin-bottom: 0.4rem;
-    background: var(--bg3);
-    border-left: 2px solid var(--grid);
-    font-size: 0.65rem;
-    line-height: 1.7;
-    color: #8aa0b8;
-  }
-  .detail-item strong { color: var(--white); display: block; margin-bottom: 0.2rem; }
-  .detail-item .meta { color: var(--muted); font-size: 0.6rem; margin-top: 0.2rem; }
-  .detail-item .action { color: var(--finance); font-size: 0.62rem; margin-top: 0.3rem; }
-
-  .score-bar-wrap { margin: 0.3rem 0 0.7rem; }
-  .score-bar { height: 3px; background: var(--bg); position: relative; }
+  .detail-item { padding: 0.5rem 0.6rem; margin-bottom: 0.3rem; background: var(--bg3); border-left: 2px solid var(--grid); font-size: 0.6rem; line-height: 1.7; color: #8aa0b8; }
+  .detail-item strong { color: var(--white); display: block; margin-bottom: 0.15rem; }
+  .detail-item .meta { color: var(--muted); font-size: 0.55rem; margin-top: 0.15rem; }
+  .detail-item .action { color: var(--finance); font-size: 0.58rem; margin-top: 0.25rem; }
+  .score-bar { height: 3px; background: var(--bg); margin: 0.2rem 0 0.5rem; }
   .score-fill { height: 100%; transition: width 0.8s; }
-  .score-low    { background: var(--security); }
-  .score-mid    { background: var(--finance); }
-  .score-high   { background: var(--danger); }
+  .score-low  { background: var(--security); }
+  .score-mid  { background: var(--finance); }
+  .score-high { background: var(--danger); }
 
-  /* ── Executive Summary ── */
+  /* ── Executive summary ── */
   #exec-panel {
     background: var(--bg2);
     border: 1px solid var(--accent);
-    padding: 2rem;
+    padding: 1.5rem;
     position: relative;
-    box-shadow: 0 0 40px #00d4ff18;
-    margin-bottom: 1.5rem;
+    box-shadow: 0 0 30px #00d4ff12;
   }
   #exec-panel::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
     background: linear-gradient(90deg, var(--gtm), var(--accent), var(--security));
-    box-shadow: 0 0 20px var(--accent);
+    box-shadow: 0 0 15px var(--accent);
   }
-  .exec-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.75rem;
-    letter-spacing: 0.3em;
-    color: var(--accent);
-    text-shadow: 0 0 10px var(--accent);
-    margin-bottom: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
-  #exec-text { font-size: 0.85rem; line-height: 1.9; color: #c8dff0; }
-  .priorities-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-  }
-  .priority-item {
-    display: flex;
-    gap: 0.75rem;
-    padding: 0.9rem;
-    background: var(--bg3);
-    border-left: 3px solid var(--accent);
-    font-size: 0.68rem;
-    line-height: 1.6;
-    color: #9bb5d0;
-  }
-  .priority-num {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.2rem;
-    font-weight: 900;
-    color: var(--accent);
-    opacity: 0.5;
-    flex-shrink: 0;
-    line-height: 1;
-  }
+  .exec-title { font-family: 'Orbitron', sans-serif; font-size: 0.65rem; letter-spacing: 0.25em; color: var(--accent); text-shadow: 0 0 8px var(--accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
+  #exec-text { font-size: 0.78rem; line-height: 1.9; color: #c8dff0; }
+  .priorities-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.6rem; margin-top: 1.2rem; }
+  .priority-item { display: flex; gap: 0.6rem; padding: 0.75rem; background: var(--bg3); border-left: 3px solid var(--accent); font-size: 0.62rem; line-height: 1.6; color: #9bb5d0; }
+  .priority-num { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 900; color: var(--accent); opacity: 0.45; flex-shrink: 0; line-height: 1.1; }
 
   /* ── Errors ── */
-  #errors-panel {
-    display: none;
-    background: #1a0008;
-    border: 1px solid var(--danger);
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 0 20px #ff003c22;
-  }
-  .error-title { font-family: 'Press Start 2P', monospace; font-size: 0.5rem; color: var(--danger); letter-spacing: 0.2em; margin-bottom: 0.5rem; }
-  .error-item { font-size: 0.65rem; color: #ff7799; padding: 0.2rem 0; }
+  #errors-panel { display: none; background: #1a0008; border: 1px solid var(--danger); padding: 0.8rem 1.2rem; box-shadow: 0 0 15px #ff003c1a; }
+  .error-title { font-family: 'Press Start 2P', monospace; font-size: 0.45rem; color: var(--danger); letter-spacing: 0.15em; margin-bottom: 0.4rem; }
+  .error-item { font-size: 0.6rem; color: #ff7799; padding: 0.15rem 0; }
 
-  footer {
-    text-align: center;
-    padding: 1.5rem;
-    border-top: 1px solid var(--grid);
-    font-size: 0.6rem;
-    color: var(--muted);
-    letter-spacing: 0.15em;
-  }
-  footer span { color: var(--accent); }
+  /* ── Animations ── */
+  @keyframes glitch { 0%,92%,100%{transform:none;filter:none} 93%{transform:skew(-0.5deg);filter:hue-rotate(90deg)} 94%{transform:skew(0.5deg) translateX(3px)} 95%{transform:none;filter:hue-rotate(-90deg)} 96%{transform:translateX(-3px)} 97%{transform:none;filter:none} }
+  @keyframes scan { 0%{left:-40%} 100%{left:100%} }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+  .fade-in { animation: fadeIn 0.4s ease forwards; }
 
-  @keyframes glitch {
-    0%, 92%, 100% { transform: none; filter: none; }
-    93%  { transform: skew(-0.5deg); filter: hue-rotate(90deg); }
-    94%  { transform: skew(0.5deg) translateX(3px); }
-    95%  { transform: none; filter: hue-rotate(-90deg); }
-    96%  { transform: translateX(-3px); }
-    97%  { transform: none; filter: none; }
-  }
-  @keyframes scan { 0% { left: -40%; } 100% { left: 100%; } }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-  .fade-in { animation: fadeIn 0.5s ease forwards; }
-
-  @media (max-width: 600px) {
-    header { padding: 2rem 1rem 1.5rem; }
-    .form-row { grid-template-columns: 1fr; }
-    .btn-run { width: 100%; }
-    .vault-entry { flex-direction: column; align-items: flex-start; }
-    .vault-actions { margin-left: 0; }
+  /* ── Mobile fallback ── */
+  @media (max-width: 768px) {
+    body { height: auto; overflow: auto; }
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--grid); overflow-y: visible; }
+    .results-window { overflow-y: visible; }
+    #idle-state, #loading-state { flex: none; padding: 2rem 1rem; }
   }
 </style>
 </head>
 <body>
 <div class="grid-bg"></div>
-<div class="content">
 
 <!-- Header -->
 <header>
-  <div class="logo">NEXUSINTEL</div>
-  <div class="logo-sub">ENTERPRISE INTELLIGENCE PLATFORM</div>
-  <div class="track-badges">
-    <span class="badge badge-gtm">◈ GTM INTELLIGENCE</span>
-    <span class="badge badge-finance">◈ FINANCE &amp; MARKET</span>
-    <span class="badge badge-sec">◈ SECURITY &amp; COMPLIANCE</span>
+  <div>
+    <div class="logo">NEXUSINTEL</div>
+    <div class="logo-sub">ENTERPRISE INTELLIGENCE PLATFORM</div>
+  </div>
+  <div class="header-badges">
+    <span class="badge badge-gtm">◈ GTM</span>
+    <span class="badge badge-finance">◈ FINANCE</span>
+    <span class="badge badge-sec">◈ SECURITY</span>
   </div>
 </header>
 
-<!-- Query Form -->
-<section class="query-section">
-  <div class="panel panel-accent">
-    <div class="panel-title">
-      <span class="dot dot-accent"></span>
-      INTELLIGENCE QUERY
-    </div>
-    <div class="form-row">
-      <div>
-        <label>TARGET COMPANY / MARKET SEGMENT</label>
-        <input type="text" id="target" placeholder="e.g. Salesforce, HubSpot, Stripe..." value="HubSpot">
-      </div>
-      <button class="btn-run" id="runBtn" onclick="runQuery()">▶ RUN</button>
-    </div>
+<!-- App shell -->
+<div class="app-shell">
+
+  <!-- ── Left sidebar ── -->
+  <aside class="sidebar">
+
+    <!-- Query form -->
     <div>
-      <label>CONTEXT (OPTIONAL)</label>
-      <input type="text" id="context" placeholder="e.g. enterprise CRM market, fintech compliance..." style="margin-bottom:1.2rem">
+      <div class="panel-label"><span class="dot dot-accent"></span>INTELLIGENCE QUERY</div>
+
+      <div class="form-block">
+        <label>TARGET COMPANY / MARKET</label>
+        <input type="text" id="target" placeholder="e.g. Salesforce, HubSpot…" value="HubSpot">
+      </div>
+
+      <div class="form-block">
+        <label>CONTEXT (OPTIONAL)</label>
+        <input type="text" id="context" placeholder="e.g. enterprise CRM market…">
+      </div>
+
+      <div class="form-block">
+        <label>ACTIVE TRACKS</label>
+        <div class="tracks-row">
+          <input type="checkbox" class="track-toggle" id="t-gtm" checked>
+          <label class="track-label gtm-lbl" for="t-gtm">📈 GTM</label>
+          <input type="checkbox" class="track-toggle" id="t-fin" checked>
+          <label class="track-label fin-lbl" for="t-fin">💹 FINANCE</label>
+          <input type="checkbox" class="track-toggle" id="t-sec" checked>
+          <label class="track-label sec-lbl" for="t-sec">🛡 SECURITY</label>
+        </div>
+      </div>
+
+      <button class="btn-run" id="runBtn" onclick="runQuery()">▶ RUN INTELLIGENCE</button>
     </div>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Archive vault -->
     <div>
-      <label>ACTIVE TRACKS</label>
-      <div class="tracks-row">
-        <input type="checkbox" class="track-toggle" id="t-gtm" value="gtm" checked>
-        <label class="track-label gtm-lbl" for="t-gtm">📈 GTM</label>
-        <input type="checkbox" class="track-toggle" id="t-fin" value="finance" checked>
-        <label class="track-label fin-lbl" for="t-fin">💹 FINANCE</label>
-        <input type="checkbox" class="track-toggle" id="t-sec" value="security" checked>
-        <label class="track-label sec-lbl" for="t-sec">🛡 SECURITY</label>
+      <div class="vault-header" onclick="toggleVault()">
+        <div class="panel-label" style="margin:0"><span class="dot dot-gtm"></span>ARCHIVE VAULT</div>
+        <span class="vault-count-badge" id="vaultCountBadge">0</span>
+        <button class="vault-toggle-btn" id="vaultToggleBtn">▼</button>
+      </div>
+      <div id="vaultBody" style="display:none;margin-top:0.6rem">
+        <div id="vaultList"></div>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- Archive Vault -->
-<section class="vault-section">
-  <div class="panel panel-gtm" style="padding:1.5rem 2rem">
-    <div class="panel-title vault-header" onclick="toggleVault()">
-      <span class="dot dot-gtm"></span>
-      INTEL ARCHIVE VAULT
-      <span class="vault-count-badge" id="vaultCountBadge">0</span>
-      <button class="vault-toggle-btn" id="vaultToggleBtn">▼ EXPAND</button>
+  </aside>
+
+  <!-- ── Main results window ── -->
+  <main class="results-window" id="resultsWindow">
+
+    <!-- Idle placeholder -->
+    <div id="idle-state">
+      <div class="idle-icon">⬡</div>
+      <div class="idle-title">AWAITING INTELLIGENCE QUERY</div>
+      <div class="idle-hint">Enter a target on the left and press RUN</div>
+      <div class="idle-hint" style="margin-top:0.3rem;font-size:0.5rem">Results will appear here in real time</div>
     </div>
-    <div id="vaultBody" style="display:none">
-      <div id="vaultList"></div>
+
+    <!-- Loading state -->
+    <div id="loading-state">
+      <div class="loading-title">SCANNING WEB INTELLIGENCE</div>
+      <div class="loading-target" id="loadingTarget"></div>
+      <div class="scanner"><div class="scanner-beam"></div></div>
+      <div class="loading-status" id="loadingStatus">INITIALISING AGENTS</div>
     </div>
-  </div>
-</section>
 
-<!-- Loading -->
-<div id="loading">
-  <div class="loading-text">SCANNING WEB INTELLIGENCE...</div>
-  <div class="scanner"><div class="scanner-beam"></div></div>
-  <div id="loadingStatus" style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin-top:0.5rem">INITIALISING AGENTS</div>
-</div>
+    <!-- Results content -->
+    <div id="results-content">
 
-<!-- Results -->
-<section id="results">
-  <div class="results-header">
-    <span>INTELLIGENCE REPORT</span>
-    <span class="req-id" id="reqId"></span>
-  </div>
+      <!-- Meta bar -->
+      <div class="results-meta">
+        <div>
+          <div class="results-target" id="resultsTarget"></div>
+          <div class="results-req" id="resultsReq"></div>
+        </div>
+      </div>
 
-  <div id="errors-panel">
-    <div class="error-title">⚠ PIPELINE ERRORS</div>
-    <div id="errorsList"></div>
-  </div>
+      <!-- Errors -->
+      <div id="errors-panel">
+        <div class="error-title">⚠ PIPELINE ERRORS</div>
+        <div id="errorsList"></div>
+      </div>
 
-  <div class="tracks-grid" id="tracksGrid"></div>
+      <!-- Track cards -->
+      <div class="tracks-grid" id="tracksGrid"></div>
 
-  <div id="exec-panel">
-    <div class="exec-title">
-      <span class="dot dot-accent" style="animation:pulse 1.5s infinite"></span>
-      EXECUTIVE INTELLIGENCE BRIEF
-    </div>
-    <div id="exec-text"></div>
-    <div class="priorities-grid" id="prioritiesGrid"></div>
-  </div>
-</section>
+      <!-- Executive brief -->
+      <div id="exec-panel">
+        <div class="exec-title">
+          <span class="dot dot-accent" style="animation:pulse 1.5s infinite"></span>
+          EXECUTIVE INTELLIGENCE BRIEF
+        </div>
+        <div id="exec-text"></div>
+        <div class="priorities-grid" id="prioritiesGrid"></div>
+      </div>
 
-<footer>
-  POWERED BY <span>BRIGHT DATA</span> × <span>CLAUDE AI</span> × <span>LANGGRAPH</span>
-  &nbsp;·&nbsp; NEXUSINTEL v1.0
-</footer>
+    </div><!-- /results-content -->
+  </main>
 
-</div>
+</div><!-- /app-shell -->
 
 <script>
-/* ── Archive ─────────────────────────────────────────── */
-const VAULT_KEY   = 'nexusintel_archive';
-const VAULT_MAX   = 20;
-let vaultOpen     = false;
+/* ── Archive ───────────────────────────────────────── */
+const VAULT_KEY = 'nexusintel_archive';
+const VAULT_MAX = 20;
+let vaultOpen = false;
 
 function getArchive() {
   try { return JSON.parse(localStorage.getItem(VAULT_KEY) || '[]'); } catch { return []; }
 }
 
 function saveToArchive(report) {
+  if (!report || !report.request_id) return;
   const archive = getArchive();
   const entry = {
-    id:        report.request_id,
-    ts:        new Date().toISOString(),
-    target:    report.target,
-    tracks:    (report.tracks_run || []),
-    severity:  report.security?.overall_severity || null,
-    report:    report,
+    id:       report.request_id,
+    ts:       new Date().toISOString(),
+    target:   report.target || '—',
+    tracks:   (report.tracks_run || []).filter(Boolean),
+    severity: report.security?.overall_severity || null,
+    report:   report,
   };
   const filtered = archive.filter(e => e.id !== entry.id);
   filtered.unshift(entry);
@@ -788,7 +630,7 @@ function saveToArchive(report) {
 }
 
 function deleteFromArchive(id, ev) {
-  if (ev) ev.stopPropagation();
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
   const filtered = getArchive().filter(e => e.id !== id);
   localStorage.setItem(VAULT_KEY, JSON.stringify(filtered));
   renderVault();
@@ -796,42 +638,35 @@ function deleteFromArchive(id, ev) {
 
 function loadFromArchive(id) {
   const entry = getArchive().find(e => e.id === id);
-  if (entry) {
-    renderReport(entry.report);
-    window.scrollTo({ top: document.getElementById('results').offsetTop - 20, behavior: 'smooth' });
-  }
+  if (entry && entry.report) renderReport(entry.report);
 }
 
 function renderVault() {
   const archive = getArchive();
-  const badge   = document.getElementById('vaultCountBadge');
-  badge.textContent = archive.length;
-
+  document.getElementById('vaultCountBadge').textContent = archive.length;
   const list = document.getElementById('vaultList');
   if (!archive.length) {
-    list.innerHTML = '<div class="vault-empty">▸ VAULT EMPTY — NO ARCHIVED RUNS</div>';
+    list.innerHTML = '<div class="vault-empty">▸ VAULT EMPTY</div>';
     return;
   }
-
   list.innerHTML = archive.map(e => {
-    const dt      = new Date(e.ts);
-    const timeStr = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-    const tracks  = (e.tracks || []).filter(Boolean).map(t => {
-      const cls = { gtm:'chip-gtm', finance:'chip-finance', security:'chip-security' }[t] || 'chip-muted';
-      return `<span class="chip ${cls}" style="font-size:0.42rem;padding:0.15rem 0.4rem">${String(t).toUpperCase()}</span>`;
+    const t   = new Date(String(e.ts || ''));
+    const ts  = isNaN(t) ? '—' : t.toLocaleDateString() + ' ' + t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const chips = (e.tracks || []).filter(Boolean).map(tr => {
+      const cls = {gtm:'chip-gtm',finance:'chip-finance',security:'chip-security'}[tr]||'chip-muted';
+      return `<span class="chip ${cls}" style="font-size:0.38rem;padding:0.1rem 0.3rem">${String(tr).toUpperCase()}</span>`;
     }).join('');
-    const sev = e.severity
-      ? `<span class="severity-badge sev-${String(e.severity).toLowerCase()}" style="font-size:0.42rem;padding:0.2rem 0.5rem">${String(e.severity).toUpperCase()}</span>`
+    const sevHtml = e.severity
+      ? `<span class="severity-badge sev-${String(e.severity).toLowerCase()}" style="font-size:0.38rem;padding:0.15rem 0.4rem">${String(e.severity).toUpperCase()}</span>`
       : '';
+    const safeId = esc(String(e.id||''));
     return `
-      <div class="vault-entry" onclick="loadFromArchive('${esc(e.id)}')">
-        <div class="vault-target">${esc(String(e.target || '').toUpperCase())}</div>
-        <div class="vault-chips">${tracks}${sev ? ' ' + sev : ''}</div>
-        <span class="vault-time">${esc(timeStr)}</span>
-        <div class="vault-actions">
-          <button class="btn-vault-load" onclick="event.stopPropagation();loadFromArchive('${esc(e.id)}')">LOAD</button>
-          <button class="btn-vault-del" onclick="deleteFromArchive('${esc(e.id)}',event)" title="Delete">×</button>
+      <div class="vault-entry" onclick="loadFromArchive('${safeId}')">
+        <div class="vault-entry-top">
+          <span class="vault-target">${esc(String(e.target||'').toUpperCase())}</span>
+          <button class="vault-del-btn" onclick="deleteFromArchive('${safeId}',event)" title="Remove">×</button>
         </div>
+        <div class="vault-meta">${chips}${sevHtml}<span class="vault-time">${esc(ts)}</span></div>
       </div>`;
   }).join('');
 }
@@ -839,45 +674,42 @@ function renderVault() {
 function toggleVault() {
   vaultOpen = !vaultOpen;
   document.getElementById('vaultBody').style.display = vaultOpen ? 'block' : 'none';
-  document.getElementById('vaultToggleBtn').textContent = vaultOpen ? '▲ COLLAPSE' : '▼ EXPAND';
+  document.getElementById('vaultToggleBtn').textContent = vaultOpen ? '▲' : '▼';
 }
 
-/* ── Loading messages ────────────────────────────────── */
-const LOADING_MSGS = [
-  'INITIALISING AGENTS',
-  'CONNECTING TO BRIGHT DATA SERP API',
-  'SCRAPING COMPETITOR INTELLIGENCE',
-  'RUNNING GTM ANALYSIS',
-  'FETCHING REGULATORY FEEDS',
-  'SCANNING THREAT SURFACE',
-  'AUTONOMOUS DEEP INVESTIGATION',
-  'CROSS-REFERENCING SIGNALS',
-  'SYNTHESISING WITH CLAUDE AI',
-  'GENERATING EXECUTIVE BRIEF',
+/* ── Run ───────────────────────────────────────────── */
+const MSGS = [
+  'INITIALISING AGENTS','CONNECTING TO BRIGHT DATA',
+  'SCRAPING COMPETITOR INTELLIGENCE','RUNNING GTM ANALYSIS',
+  'FETCHING REGULATORY FEEDS','SCANNING THREAT SURFACE',
+  'AUTONOMOUS DEEP INVESTIGATION','CROSS-REFERENCING SIGNALS',
+  'SYNTHESISING WITH CLAUDE AI','GENERATING EXECUTIVE BRIEF',
 ];
 let loadingInterval;
 
-/* ── Run ─────────────────────────────────────────────── */
 async function runQuery() {
   const target = document.getElementById('target').value.trim();
   if (!target) return;
 
-  const idMap = { gtm: 'gtm', finance: 'fin', security: 'sec' };
-  const tracks = ['gtm','finance','security'].filter(t =>
-    document.getElementById('t-' + idMap[t])?.checked
-  );
+  const tracks = [];
+  if (document.getElementById('t-gtm')?.checked) tracks.push('gtm');
+  if (document.getElementById('t-fin')?.checked) tracks.push('finance');
+  if (document.getElementById('t-sec')?.checked) tracks.push('security');
   if (!tracks.length) { alert('Select at least one track.'); return; }
 
   const context = document.getElementById('context').value.trim();
 
+  // Switch to loading state
   document.getElementById('runBtn').disabled = true;
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('results').style.display = 'none';
+  document.getElementById('idle-state').style.display = 'none';
+  document.getElementById('results-content').style.display = 'none';
+  document.getElementById('loading-state').style.display = 'flex';
+  document.getElementById('loadingTarget').textContent = target.toUpperCase();
 
-  let msgIdx = 0;
+  let idx = 0;
   const statusEl = document.getElementById('loadingStatus');
   loadingInterval = setInterval(() => {
-    statusEl.textContent = LOADING_MSGS[Math.min(msgIdx++, LOADING_MSGS.length - 1)];
+    statusEl.textContent = MSGS[Math.min(idx++, MSGS.length - 1)];
   }, 3500);
 
   try {
@@ -892,32 +724,34 @@ async function runQuery() {
       throw new Error(detail);
     }
     const data = await res.json();
-    if (data && data.request_id) saveToArchive(data);
+    saveToArchive(data);
     renderReport(data);
   } catch (e) {
-    const msg = (e && e.message) ? e.message : String(e);
-    alert('Request failed: ' + msg);
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('idle-state').style.display = 'flex';
+    alert('Request failed: ' + ((e && e.message) ? e.message : String(e)));
   } finally {
     clearInterval(loadingInterval);
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('loading-state').style.display = 'none';
     document.getElementById('runBtn').disabled = false;
   }
 }
 
-/* ── Render ──────────────────────────────────────────── */
+/* ── Render ────────────────────────────────────────── */
 function renderReport(d) {
-  document.getElementById('reqId').textContent =
-    'REQ: ' + (d.request_id || '').substring(0,8).toUpperCase() +
-    '  ·  ' + (d.target || '').toUpperCase();
+  // Show results content, hide others
+  document.getElementById('idle-state').style.display = 'none';
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('results-content').style.display = 'block';
+
+  document.getElementById('resultsTarget').textContent = (d.target || '').toUpperCase();
+  document.getElementById('resultsReq').textContent = 'ID: ' + (d.request_id || '').substring(0,8).toUpperCase();
 
   const errs = d.errors || [];
   const errPanel = document.getElementById('errors-panel');
+  errPanel.style.display = errs.length ? 'block' : 'none';
   if (errs.length) {
-    errPanel.style.display = 'block';
-    document.getElementById('errorsList').innerHTML =
-      errs.map(e => `<div class="error-item">› ${esc(e)}</div>`).join('');
-  } else {
-    errPanel.style.display = 'none';
+    document.getElementById('errorsList').innerHTML = errs.map(e => `<div class="error-item">› ${esc(e)}</div>`).join('');
   }
 
   const grid = document.getElementById('tracksGrid');
@@ -929,81 +763,63 @@ function renderReport(d) {
   document.getElementById('exec-text').textContent = d.executive_summary || 'No summary generated.';
   document.getElementById('prioritiesGrid').innerHTML = (d.top_priorities || []).map((p, i) =>
     `<div class="priority-item fade-in" style="animation-delay:${i*0.1}s">
-      <span class="priority-num">${i+1}</span>
-      <span>${esc(p)}</span>
+      <span class="priority-num">${i+1}</span><span>${esc(p)}</span>
     </div>`
   ).join('');
 
-  document.getElementById('results').style.display = 'block';
-  window.scrollTo({ top: document.getElementById('results').offsetTop - 20, behavior: 'smooth' });
+  // Scroll results window to top
+  document.getElementById('resultsWindow').scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* ── GTM Card ────────────────────────────────────────── */
+/* ── GTM Card ──────────────────────────────────────── */
 function buildGTMCard(gtm) {
   const competitors = gtm.competitors || [];
   const signals     = gtm.buying_signals || [];
   const actions     = gtm.action_items || [];
 
-  const compChips = competitors.slice(0,6).map(c =>
-    `<span class="chip chip-gtm">${esc(c.company)}</span>`
-  ).join('');
-
-  const sigItems = signals.slice(0,3).map(s =>
-    `<div class="item"><strong>[${esc(s.signal_type)}]</strong> ${esc((s.description||'').slice(0,120))}</div>`
+  const compChips = competitors.slice(0,6).map(c => `<span class="chip chip-gtm">${esc(c.company)}</span>`).join('');
+  const sigItems  = signals.slice(0,3).map(s =>
+    `<div class="item"><strong>[${esc(s.signal_type)}]</strong> ${esc((s.description||'').slice(0,110))}</div>`
   ).join('') || `<div class="item" style="color:var(--muted)">No buying signals detected</div>`;
 
-  // Full detail drawer
   const compDetail = competitors.map(c => `
     <div class="detail-item">
       <strong>${esc(c.company)} — ${esc(c.domain)}</strong>
-      ${c.pricing_signals?.length ? `<div>💰 ${c.pricing_signals.slice(0,2).map(p=>esc(p.slice(0,100))).join(' · ')}</div>` : ''}
+      ${c.pricing_signals?.length ? `<div>💰 ${c.pricing_signals.slice(0,2).map(p=>esc(p.slice(0,90))).join(' · ')}</div>` : ''}
       ${c.messaging_themes?.length ? `<div>📣 ${c.messaging_themes.slice(0,2).map(m=>esc(m.slice(0,80))).join(' · ')}</div>` : ''}
-      ${c.hiring_signals?.length ? `<div class="meta">🔍 Hiring: ${c.hiring_signals.slice(0,2).map(h=>esc(h.slice(0,60))).join(' · ')}</div>` : ''}
-      ${c.summary ? `<div class="meta" style="margin-top:0.3rem">${esc(c.summary.slice(0,160))}</div>` : ''}
-    </div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No competitor profiles</div>';
+      ${c.hiring_signals?.length ? `<div class="meta">🔍 ${c.hiring_signals.slice(0,2).map(h=>esc(h.slice(0,60))).join(' · ')}</div>` : ''}
+      ${c.summary ? `<div class="meta">${esc(c.summary.slice(0,150))}</div>` : ''}
+    </div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No competitor data</div>';
 
   const allSignals = signals.map(s => `
     <div class="detail-item">
       <strong>${esc(s.signal_type)}</strong>
       <div>${esc((s.description||'').slice(0,200))}</div>
-      <div class="meta">Relevance: ${((s.relevance_score||0)*100).toFixed(0)}%  ${s.url ? '· <a href="'+esc(s.url)+'" target="_blank" style="color:var(--gtm)">source</a>' : ''}</div>
+      <div class="meta">Relevance: ${((s.relevance_score||0)*100).toFixed(0)}%</div>
     </div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No signals</div>';
 
-  const actionItems = actions.map(a => `
-    <div class="detail-item">▸ ${esc(a)}</div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No action items</div>';
+  const actionItems = actions.map(a => `<div class="detail-item">▸ ${esc(a)}</div>`).join('') ||
+    '<div class="detail-item" style="color:var(--muted)">No action items</div>';
 
-  const drawerId = 'gtm-drawer-' + Math.random().toString(36).slice(2);
-
-  const el = card('gtm', '📈', 'GTM INTELLIGENCE', `
-    <div class="stat-row">
-      <span class="stat-label">COMPETITORS IDENTIFIED</span>
-      <span class="stat-value">${competitors.length}</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">BUYING SIGNALS</span>
-      <span class="stat-value">${signals.length}</span>
-    </div>
-    <div class="chip-list" style="margin:0.8rem 0">${compChips || '<span class="chip chip-muted">NONE FOUND</span>'}</div>
-    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">TOP BUYING SIGNALS</div>
+  const did = 'gtm-' + Math.random().toString(36).slice(2);
+  return card('gtm', '📈', 'GTM INTELLIGENCE', `
+    <div class="stat-row"><span class="stat-label">COMPETITORS</span><span class="stat-value">${competitors.length}</span></div>
+    <div class="stat-row"><span class="stat-label">BUYING SIGNALS</span><span class="stat-value">${signals.length}</span></div>
+    <div class="chip-list">${compChips || '<span class="chip chip-muted">NONE FOUND</span>'}</div>
+    <div style="font-size:0.52rem;color:var(--muted);letter-spacing:0.12em;margin:0.6rem 0 0.25rem">TOP BUYING SIGNALS</div>
     <div class="item-list">${sigItems}</div>
-    ${gtm.market_positioning ? `<div class="item" style="margin-top:0.5rem;color:#8aa0b8;font-size:0.65rem">${esc(gtm.market_positioning.slice(0,180))}</div>` : ''}
-
-    <button class="detail-toggle" onclick="toggleDetail(this,'${drawerId}')">
-      <span class="arrow">▼</span>&nbsp; FULL DETAIL · ${competitors.length} COMPETITORS · ${actions.length} ACTION ITEMS
+    ${gtm.market_positioning ? `<div class="item" style="margin-top:0.4rem;color:#8aa0b8;font-size:0.6rem">${esc(gtm.market_positioning.slice(0,160))}</div>`:''}
+    <button class="detail-toggle" onclick="toggleDetail(this,'${did}')">
+      <span class="arrow">▼</span>&nbsp; FULL DETAIL · ${competitors.length} COMPETITORS · ${actions.length} ACTIONS
     </button>
-    <div class="detail-drawer" id="${drawerId}">
-      <div class="detail-section-title">COMPETITOR PROFILES</div>
-      ${compDetail}
-      <div class="detail-section-title">ALL BUYING SIGNALS (${signals.length})</div>
-      ${allSignals}
-      <div class="detail-section-title">ACTION ITEMS</div>
-      ${actionItems}
-    </div>
-  `);
-  return el;
+    <div class="detail-drawer" id="${did}">
+      <div class="detail-section-title">COMPETITOR PROFILES</div>${compDetail}
+      <div class="detail-section-title">ALL BUYING SIGNALS</div>${allSignals}
+      <div class="detail-section-title">ACTION ITEMS</div>${actionItems}
+    </div>`);
 }
 
-/* ── Finance Card ────────────────────────────────────── */
+/* ── Finance Card ──────────────────────────────────── */
 function buildFinanceCard(fin) {
   const risk    = fin.risk_score ?? 0;
   const pricing = fin.pricing_data || [];
@@ -1011,213 +827,153 @@ function buildFinanceCard(fin) {
   const altSigs = fin.alternative_signals || [];
   const pct     = (risk / 10 * 100).toFixed(0);
 
-  const pricingItems = pricing.slice(0,3).map(p => {
-    const price = p.price != null ? `$${p.price}` : '—';
-    return `<div class="item"><strong>${esc(p.product)}</strong> ${price} <span style="color:var(--muted)">${esc(p.metadata?.tier||'')}</span></div>`;
-  }).join('') || `<div class="item" style="color:var(--muted)">No pricing data extracted</div>`;
+  const pricingItems = pricing.slice(0,3).map(p =>
+    `<div class="item"><strong>${esc(p.product)}</strong> ${p.price!=null?'$'+p.price:'—'} <span style="color:var(--muted)">${esc(p.metadata?.tier||'')}</span></div>`
+  ).join('') || `<div class="item" style="color:var(--muted)">No pricing data</div>`;
 
   const alertItems = alerts.slice(0,2).map(a =>
-    `<div class="item"><strong>${esc(a.source)}</strong> ${esc((a.title||'').slice(0,80))}</div>`
+    `<div class="item"><strong>${esc(a.source)}</strong> ${esc((a.title||'').slice(0,75))}</div>`
   ).join('') || `<div class="item" style="color:var(--muted)">No alerts</div>`;
-
-  // Full detail drawer
-  const allPricing = pricing.map(p => `
-    <div class="detail-item">
-      <strong>${esc(p.product)}</strong>
-      <div>Price: ${p.price != null ? '$'+p.price : 'N/A'}  ·  ${esc(p.currency)}  ·  ${esc(p.metadata?.tier||'—')}</div>
-      ${p.metadata?.snippet ? `<div class="meta">${esc(p.metadata.snippet.slice(0,150))}</div>` : ''}
-      <div class="meta">Source: ${esc(p.source)}</div>
-    </div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No pricing data</div>';
 
   const allAlerts = alerts.map(a => `
     <div class="detail-item">
       <strong>${esc(a.title||a.source)}</strong>
       <div>${esc((a.summary||'').slice(0,200))}</div>
       ${a.impact ? `<div class="action">▸ ${esc(a.impact.slice(0,150))}</div>` : ''}
-      <div class="meta">Source: ${a.url ? `<a href="${esc(a.url)}" target="_blank" style="color:var(--finance)">${esc(a.source)}</a>` : esc(a.source)}</div>
-    </div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No regulatory alerts</div>';
+    </div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No alerts</div>';
 
   const allAlt = altSigs.map(s => `
     <div class="detail-item">
       <strong>${esc(s.signal_type)}</strong>
-      <div>${esc(String(s.value||'').slice(0,100))}</div>
       <div class="meta">${esc((s.interpretation||'').slice(0,200))}</div>
     </div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No alternative signals</div>';
 
-  const drawerId = 'fin-drawer-' + Math.random().toString(36).slice(2);
-
+  const did = 'fin-' + Math.random().toString(36).slice(2);
   return card('finance', '💹', 'FINANCE INTELLIGENCE', `
-    <div class="stat-row">
-      <span class="stat-label">RISK SCORE</span>
-      <span class="stat-value">${risk.toFixed(1)}<span style="font-size:0.7rem;opacity:0.5">/10</span></span>
-    </div>
+    <div class="stat-row"><span class="stat-label">RISK SCORE</span><span class="stat-value">${risk.toFixed(1)}<span style="font-size:0.65rem;opacity:0.5">/10</span></span></div>
     <div class="risk-bar"><div class="risk-fill" style="width:${pct}%"></div></div>
-    <div class="stat-row">
-      <span class="stat-label">PRICING SIGNALS</span><span class="stat-value" style="font-size:1rem">${pricing.length}</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">REGULATORY ALERTS</span><span class="stat-value" style="font-size:1rem">${alerts.length}</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">ALT DATA SIGNALS</span><span class="stat-value" style="font-size:1rem">${altSigs.length}</span>
-    </div>
-    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">PRICING</div>
+    <div class="stat-row"><span class="stat-label">PRICING SIGNALS</span><span class="stat-value" style="font-size:1rem">${pricing.length}</span></div>
+    <div class="stat-row"><span class="stat-label">REG ALERTS</span><span class="stat-value" style="font-size:1rem">${alerts.length}</span></div>
+    <div class="stat-row"><span class="stat-label">ALT SIGNALS</span><span class="stat-value" style="font-size:1rem">${altSigs.length}</span></div>
+    <div style="font-size:0.52rem;color:var(--muted);letter-spacing:0.12em;margin:0.6rem 0 0.25rem">PRICING</div>
     <div class="item-list">${pricingItems}</div>
-    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">REG ALERTS</div>
+    <div style="font-size:0.52rem;color:var(--muted);letter-spacing:0.12em;margin:0.6rem 0 0.25rem">REG ALERTS</div>
     <div class="item-list">${alertItems}</div>
-    ${fin.investment_summary ? `<div class="item" style="margin-top:0.5rem;color:#8aa0b8;font-size:0.62rem">${esc(fin.investment_summary.slice(0,200))}</div>` : ''}
-
-    <button class="detail-toggle" onclick="toggleDetail(this,'${drawerId}')">
-      <span class="arrow">▼</span>&nbsp; FULL DETAIL · ${pricing.length} PRICING · ${altSigs.length} ALT SIGNALS
+    ${fin.investment_summary?`<div class="item" style="margin-top:0.4rem;color:#8aa0b8;font-size:0.58rem">${esc(fin.investment_summary.slice(0,180))}</div>`:''}
+    <button class="detail-toggle" onclick="toggleDetail(this,'${did}')">
+      <span class="arrow">▼</span>&nbsp; FULL DETAIL · ${alerts.length} ALERTS · ${altSigs.length} ALT SIGNALS
     </button>
-    <div class="detail-drawer" id="${drawerId}">
-      <div class="detail-section-title">ALL PRICING DATA</div>
-      ${allPricing}
-      <div class="detail-section-title">ALL REGULATORY ALERTS (${alerts.length})</div>
-      ${allAlerts}
-      <div class="detail-section-title">ALTERNATIVE DATA SIGNALS (${altSigs.length})</div>
-      ${allAlt}
-      ${fin.investment_summary ? `
-        <div class="detail-section-title">FULL INVESTMENT SUMMARY</div>
-        <div class="detail-item">${esc(fin.investment_summary)}</div>
-      ` : ''}
-    </div>
-  `);
+    <div class="detail-drawer" id="${did}">
+      <div class="detail-section-title">ALL REG ALERTS</div>${allAlerts}
+      <div class="detail-section-title">ALTERNATIVE DATA SIGNALS</div>${allAlt}
+      ${fin.investment_summary?`<div class="detail-section-title">INVESTMENT SUMMARY</div><div class="detail-item">${esc(fin.investment_summary)}</div>`:''}
+    </div>`);
 }
 
-/* ── Security Card ───────────────────────────────────── */
+/* ── Security Card ─────────────────────────────────── */
 function buildSecurityCard(sec) {
-  const sev        = (sec.overall_severity || 'low').toLowerCase();
+  const sev        = String(sec.overall_severity || 'low').toLowerCase();
   const threats    = sec.threat_indicators || [];
   const compliance = sec.compliance_changes || [];
   const vendors    = sec.vendor_risks || [];
   const exposure   = sec.brand_exposure || [];
-  const sevClass   = { low:'sev-low', medium:'sev-medium', high:'sev-high', critical:'sev-critical' }[sev] || 'sev-low';
+  const sevClass   = {low:'sev-low',medium:'sev-medium',high:'sev-high',critical:'sev-critical'}[sev]||'sev-low';
 
   const threatItems = threats.slice(0,3).map(t => `
     <div class="item">
-      <span class="chip chip-${['critical','high'].includes(t.severity)?'danger':'security'}" style="font-size:0.5rem;padding:0.15rem 0.4rem">${(t.severity||'').toUpperCase()}</span>
-      <span style="margin-left:0.4rem">${esc((t.description||t.indicator_type||'').slice(0,110))}</span>
+      <span class="chip chip-${['critical','high'].includes(String(t.severity))?'danger':'security'}" style="font-size:0.42rem;padding:0.1rem 0.35rem">${String(t.severity||'').toUpperCase()}</span>
+      <span style="margin-left:0.3rem">${esc((t.description||t.indicator_type||'').slice(0,100))}</span>
     </div>`).join('') || `<div class="item" style="color:var(--muted)">No threats detected</div>`;
 
   const compItems = compliance.slice(0,2).map(c =>
-    `<div class="item"><strong>${esc((c.regulation||'').slice(0,40))}</strong> — ${esc((c.summary||'').slice(0,90))}</div>`
+    `<div class="item"><strong>${esc((c.regulation||'').slice(0,35))}</strong> — ${esc((c.summary||'').slice(0,80))}</div>`
   ).join('') || `<div class="item" style="color:var(--muted)">No compliance changes</div>`;
 
-  // Full detail drawer
   const allThreats = threats.map(t => `
     <div class="detail-item">
       <strong>
-        <span class="chip chip-${['critical','high'].includes(t.severity)?'danger':'security'}" style="font-size:0.45rem;padding:0.1rem 0.35rem">${(t.severity||'').toUpperCase()}</span>
+        <span class="chip chip-${['critical','high'].includes(String(t.severity))?'danger':'security'}" style="font-size:0.38rem;padding:0.1rem 0.3rem">${String(t.severity||'').toUpperCase()}</span>
         &nbsp;${esc(t.indicator_type||'')}
       </strong>
-      <div>${esc((t.description||'').slice(0,250))}</div>
-      <div class="meta">Source: ${t.url ? `<a href="${esc(t.url)}" target="_blank" style="color:var(--security)">${esc(t.source||t.url)}</a>` : esc(t.source||'—')}</div>
+      <div>${esc((t.description||'').slice(0,220))}</div>
+      ${t.url?`<div class="meta"><a href="${esc(t.url)}" target="_blank" style="color:var(--security)">Source →</a></div>`:''}
     </div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No threats</div>';
 
   const allCompliance = compliance.map(c => `
     <div class="detail-item">
-      <strong>${esc(c.regulation||'')} <span style="color:var(--muted);font-weight:normal;font-size:0.6rem">[${esc(c.jurisdiction||'')}]</span></strong>
-      ${c.severity ? `<span class="severity-badge sev-${c.severity}" style="font-size:0.4rem;padding:0.15rem 0.4rem;margin-left:0.4rem">${c.severity.toUpperCase()}</span>` : ''}
-      <div style="margin-top:0.3rem">${esc((c.summary||'').slice(0,200))}</div>
-      ${c.effective_date ? `<div class="meta">Effective: ${esc(c.effective_date)}</div>` : ''}
-      ${c.action_required ? `<div class="action">▸ ACTION: ${esc(c.action_required.slice(0,200))}</div>` : ''}
-      ${c.source_url ? `<div class="meta"><a href="${esc(c.source_url)}" target="_blank" style="color:var(--security)">Source →</a></div>` : ''}
+      <strong>${esc(c.regulation||'')} <span style="color:var(--muted);font-weight:normal">[${esc(c.jurisdiction||'')}]</span>
+      ${c.severity?`<span class="severity-badge sev-${String(c.severity).toLowerCase()}" style="font-size:0.35rem;padding:0.1rem 0.3rem;margin-left:0.3rem">${String(c.severity).toUpperCase()}</span>`:''}
+      </strong>
+      <div>${esc((c.summary||'').slice(0,180))}</div>
+      ${c.action_required?`<div class="action">▸ ${esc(c.action_required.slice(0,180))}</div>`:''}
+      ${c.source_url?`<div class="meta"><a href="${esc(c.source_url)}" target="_blank" style="color:var(--security)">Source →</a></div>`:''}
     </div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No compliance data</div>';
 
   const allVendors = vendors.map(v => {
-    const pct = (v.risk_score / 10 * 100).toFixed(0);
-    const scoreClass = v.risk_score >= 7 ? 'score-high' : v.risk_score >= 4 ? 'score-mid' : 'score-low';
+    const pct = (v.risk_score/10*100).toFixed(0);
+    const sc  = v.risk_score>=7?'score-high':v.risk_score>=4?'score-mid':'score-low';
     return `
     <div class="detail-item">
-      <strong>${esc(v.vendor)} <span style="color:var(--muted);font-weight:normal">(${esc(v.domain)})</span></strong>
-      <div class="score-bar-wrap">
-        <div style="display:flex;justify-content:space-between;font-size:0.55rem;margin-bottom:0.2rem">
-          <span style="color:var(--muted)">RISK</span>
-          <span style="color:${v.risk_score>=7?'var(--danger)':v.risk_score>=4?'var(--finance)':'var(--security)'}">${v.risk_score.toFixed(1)}/10</span>
-        </div>
-        <div class="score-bar"><div class="score-fill ${scoreClass}" style="width:${pct}%"></div></div>
+      <strong>${esc(v.vendor)}</strong>
+      <div style="display:flex;justify-content:space-between;font-size:0.52rem;margin:0.15rem 0">
+        <span style="color:var(--muted)">RISK</span>
+        <span style="color:${v.risk_score>=7?'var(--danger)':v.risk_score>=4?'var(--finance)':'var(--security)'}">${v.risk_score.toFixed(1)}/10</span>
       </div>
-      ${v.risk_factors?.length ? `<div class="meta">⚠ ${v.risk_factors.slice(0,3).map(f=>esc(f.slice(0,100))).join('<br>⚠ ')}</div>` : ''}
-      ${v.open_issues?.length ? `<div class="meta" style="margin-top:0.2rem">Issues: ${v.open_issues.slice(0,2).map(i=>esc(i.slice(0,100))).join(' · ')}</div>` : ''}
-      ${v.recommendation ? `<div class="action">▸ ${esc(v.recommendation.slice(0,200))}</div>` : ''}
+      <div class="score-bar"><div class="score-fill ${sc}" style="width:${pct}%"></div></div>
+      ${v.risk_factors?.length?`<div class="meta">${v.risk_factors.slice(0,2).map(f=>esc(f.slice(0,90))).join('<br>')}</div>`:''}
+      ${v.recommendation?`<div class="action">▸ ${esc(v.recommendation.slice(0,180))}</div>`:''}
     </div>`;
   }).join('') || '<div class="detail-item" style="color:var(--muted)">No vendor profiles</div>';
 
-  const allExposure = exposure.map(e => `
-    <div class="detail-item">▸ ${esc(e)}</div>`).join('') || '<div class="detail-item" style="color:var(--muted)">No exposures detected</div>';
+  const allExposure = exposure.map(e => `<div class="detail-item">▸ ${esc(e)}</div>`).join('') ||
+    '<div class="detail-item" style="color:var(--muted)">No exposures detected</div>';
 
-  const drawerId = 'sec-drawer-' + Math.random().toString(36).slice(2);
-
+  const did = 'sec-' + Math.random().toString(36).slice(2);
   return card('security', '🛡', 'SECURITY & COMPLIANCE', `
-    <div class="stat-row" style="margin-bottom:0.8rem">
+    <div class="stat-row" style="margin-bottom:0.6rem">
       <span class="stat-label">OVERALL SEVERITY</span>
       <span class="severity-badge ${sevClass}">${sev.toUpperCase()}</span>
     </div>
-    <div class="stat-row">
-      <span class="stat-label">THREAT INDICATORS</span><span class="stat-value">${threats.length}</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">COMPLIANCE CHANGES</span><span class="stat-value" style="font-size:1rem">${compliance.length}</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">VENDOR RISK PROFILES</span><span class="stat-value" style="font-size:1rem">${vendors.length}</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">BRAND EXPOSURES</span><span class="stat-value" style="font-size:1rem">${exposure.length}</span>
-    </div>
-    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">TOP THREATS</div>
+    <div class="stat-row"><span class="stat-label">THREAT INDICATORS</span><span class="stat-value">${threats.length}</span></div>
+    <div class="stat-row"><span class="stat-label">COMPLIANCE CHANGES</span><span class="stat-value" style="font-size:1rem">${compliance.length}</span></div>
+    <div class="stat-row"><span class="stat-label">VENDOR PROFILES</span><span class="stat-value" style="font-size:1rem">${vendors.length}</span></div>
+    <div class="stat-row"><span class="stat-label">BRAND EXPOSURES</span><span class="stat-value" style="font-size:1rem">${exposure.length}</span></div>
+    <div style="font-size:0.52rem;color:var(--muted);letter-spacing:0.12em;margin:0.6rem 0 0.25rem">TOP THREATS</div>
     <div class="item-list">${threatItems}</div>
-    <div style="font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin:0.8rem 0 0.3rem">COMPLIANCE</div>
+    <div style="font-size:0.52rem;color:var(--muted);letter-spacing:0.12em;margin:0.6rem 0 0.25rem">COMPLIANCE</div>
     <div class="item-list">${compItems}</div>
-
-    <button class="detail-toggle" onclick="toggleDetail(this,'${drawerId}')">
-      <span class="arrow">▼</span>&nbsp; FULL DETAIL · ${threats.length} THREATS · ${vendors.length} VENDORS · ${compliance.length} CHANGES
+    <button class="detail-toggle" onclick="toggleDetail(this,'${did}')">
+      <span class="arrow">▼</span>&nbsp; FULL DETAIL · ${threats.length} THREATS · ${vendors.length} VENDORS
     </button>
-    <div class="detail-drawer" id="${drawerId}">
-      <div class="detail-section-title">ALL THREAT INDICATORS (${threats.length})</div>
-      ${allThreats}
-      <div class="detail-section-title">COMPLIANCE CHANGES — ALL SOURCES (${compliance.length})</div>
-      ${allCompliance}
-      <div class="detail-section-title">VENDOR RISK PROFILES (${vendors.length})</div>
-      ${allVendors}
-      <div class="detail-section-title">BRAND & CREDENTIAL EXPOSURE (${exposure.length})</div>
-      ${allExposure}
-      ${sec.summary ? `
-        <div class="detail-section-title">CISO BRIEFING</div>
-        <div class="detail-item" style="white-space:pre-line">${esc(sec.summary)}</div>
-      ` : ''}
-    </div>
-  `);
+    <div class="detail-drawer" id="${did}">
+      <div class="detail-section-title">ALL THREAT INDICATORS (${threats.length})</div>${allThreats}
+      <div class="detail-section-title">COMPLIANCE — ALL SOURCES (${compliance.length})</div>${allCompliance}
+      <div class="detail-section-title">VENDOR RISK PROFILES (${vendors.length})</div>${allVendors}
+      <div class="detail-section-title">BRAND & CREDENTIAL EXPOSURE</div>${allExposure}
+      ${sec.summary?`<div class="detail-section-title">CISO BRIEFING</div><div class="detail-item" style="white-space:pre-line">${esc(sec.summary)}</div>`:''}
+    </div>`);
 }
 
-/* ── Helpers ─────────────────────────────────────────── */
+/* ── Helpers ───────────────────────────────────────── */
 function card(cls, icon, title, body) {
   const el = document.createElement('div');
   el.className = `track-card ${cls} fade-in`;
-  el.innerHTML = `
-    <div class="track-header">
-      <span class="track-icon">${icon}</span>
-      <span class="track-name">${title}</span>
-    </div>
-    ${body}`;
+  el.innerHTML = `<div class="track-header"><span class="track-icon">${icon}</span><span class="track-name">${title}</span></div>${body}`;
   return el;
 }
 
-function toggleDetail(btn, drawerId) {
-  const drawer = document.getElementById(drawerId);
-  const open   = drawer.classList.toggle('open');
-  btn.classList.toggle('open', open);
+function toggleDetail(btn, id) {
+  const d = document.getElementById(id);
+  const o = d.classList.toggle('open');
+  btn.classList.toggle('open', o);
 }
 
 function esc(s) {
   if (!s) return '';
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-/* ── Init ────────────────────────────────────────────── */
+/* ── Init ──────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   renderVault();
   document.querySelectorAll('input[type=text]').forEach(el => {
