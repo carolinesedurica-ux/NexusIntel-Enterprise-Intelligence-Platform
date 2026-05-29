@@ -294,26 +294,41 @@ class AIAnalyzer:
         gtm_summary: str,
         finance_summary: str,
         security_summary: str,
+        memory_context: str = "",
     ) -> dict[str, Any]:
-        """Generate the final cross-track executive intelligence brief."""
-        # Truncate individual summaries to avoid overrunning token budget
+        """
+        Generate the final cross-track executive intelligence brief.
+
+        When memory_context is provided (recalled from Cognee), Claude uses
+        historical intelligence to surface trends and compare across runs.
+        """
+        memory_section = (
+            f"\nHistorical Memory Context (from past runs):\n{memory_context[:800]}\n"
+            "Use this context to identify trends, changes since last analysis, "
+            "and cross-run patterns. Note if threat count increased, risk scores changed, "
+            "or new competitors appeared since the previous run.\n"
+            if memory_context
+            else ""
+        )
         prompt = (
-            f"Target: {target}\n\n"
+            f"Target: {target}\n"
+            f"{memory_section}\n"
             f"GTM:\n{gtm_summary[:800]}\n\n"
             f"Finance:\n{finance_summary[:600]}\n\n"
             f"Security:\n{security_summary[:600]}\n\n"
             "Return ONLY this JSON (no prose, no fences):\n"
             "{\n"
-            '  "executive_summary": "2-3 sentence brief for C-suite",\n'
+            '  "executive_summary": "2-3 sentence brief for C-suite — include trend vs past if memory available",\n'
             '  "top_priorities": ["priority 1", "priority 2", "priority 3"],\n'
             '  "cross_track_connections": ["connection 1"],\n'
-            '  "recommended_actions": ["action 1", "action 2"]\n'
+            '  "recommended_actions": ["action 1", "action 2"],\n'
+            '  "memory_trends": "1 sentence on what changed vs past runs, or empty string"\n'
             "}"
         )
-        result = self._analyze_json(self._SYNTHESIS_SYSTEM, prompt, max_tokens=600)
-        # Ensure required keys always exist
+        result = self._analyze_json(self._SYNTHESIS_SYSTEM, prompt, max_tokens=700)
         result.setdefault("executive_summary", result.get("raw", "Intelligence synthesis complete."))
         result.setdefault("top_priorities", [])
         result.setdefault("cross_track_connections", [])
         result.setdefault("recommended_actions", [])
+        result.setdefault("memory_trends", "")
         return result

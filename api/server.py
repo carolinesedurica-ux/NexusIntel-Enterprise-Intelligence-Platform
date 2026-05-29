@@ -148,6 +148,40 @@ async def list_reports() -> JSONResponse:
     })
 
 
+# ─── Memory endpoints (Cognee) ────────────────────────────────────────────────
+
+@app.post("/memory/search", status_code=status.HTTP_200_OK)
+async def memory_search(body: dict) -> JSONResponse:
+    """
+    Query the Cognee knowledge graph for historical intelligence.
+
+    Request body: {"target": "Stripe", "query": "threat indicators CVE"}
+    Returns the recalled context passage from past runs.
+    """
+    from tools.cognee_memory import get_memory
+    target = body.get("target", "")
+    query = body.get("query", "")
+    if not target:
+        raise HTTPException(status_code=400, detail="target is required")
+    memory = get_memory()
+    context = memory.recall(target, query)
+    return JSONResponse(content={
+        "target": target,
+        "query": query,
+        "context": context,
+        "has_history": bool(context),
+    })
+
+
+@app.get("/memory/targets", status_code=status.HTTP_200_OK)
+async def memory_targets() -> JSONResponse:
+    """List all targets that have been stored in Cognee memory."""
+    from tools.cognee_memory import get_memory
+    memory = get_memory()
+    targets = memory.list_targets()
+    return JSONResponse(content={"targets": targets, "count": len(targets)})
+
+
 # ─── Entry point ──────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

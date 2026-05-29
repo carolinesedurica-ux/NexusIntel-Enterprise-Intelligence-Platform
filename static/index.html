@@ -457,6 +457,45 @@
   .priority-item { display: flex; gap: 0.6rem; padding: 0.75rem; background: var(--bg3); border-left: 3px solid var(--accent); font-size: 0.62rem; line-height: 1.6; color: #9bb5d0; }
   .priority-num { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 900; color: var(--accent); opacity: 0.45; flex-shrink: 0; line-height: 1.1; }
 
+  /* ── Memory panel (Cognee) ── */
+  #memory-panel {
+    display: none;
+    background: #020e18;
+    border: 1px solid var(--accent);
+    border-left: 3px solid var(--accent);
+    padding: 0.9rem 1.2rem;
+    box-shadow: 0 0 20px #00d4ff0d;
+  }
+  .memory-header {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin-bottom: 0.5rem; cursor: pointer;
+  }
+  .memory-title {
+    font-family: 'Orbitron', sans-serif; font-size: 0.6rem;
+    letter-spacing: 0.2em; color: var(--accent);
+  }
+  .memory-badge {
+    font-family: 'Press Start 2P', monospace; font-size: 0.38rem;
+    padding: 0.15rem 0.4rem; background: #00d4ff18;
+    border: 1px solid var(--accent); color: var(--accent); letter-spacing: 0.08em;
+  }
+  .memory-cold {
+    border-color: var(--muted); color: var(--muted); background: transparent;
+  }
+  .memory-toggle-btn {
+    margin-left: auto; background: transparent; border: 1px solid var(--muted);
+    color: var(--muted); font-size: 0.5rem; padding: 0.12rem 0.35rem;
+    cursor: pointer; font-family: 'Space Mono', monospace; transition: all 0.15s;
+  }
+  .memory-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+  #memoryBody { display: none; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--grid); }
+  .memory-context-text {
+    font-size: 0.58rem; line-height: 1.8; color: #7ab0cc;
+    white-space: pre-line; max-height: 240px; overflow-y: auto;
+  }
+  .memory-context-text::-webkit-scrollbar { width: 3px; }
+  .memory-context-text::-webkit-scrollbar-thumb { background: var(--grid); }
+
   /* ── Errors ── */
   #errors-panel { display: none; background: #1a0008; border: 1px solid var(--danger); padding: 0.8rem 1.2rem; box-shadow: 0 0 15px #ff003c1a; }
   .error-title { font-family: 'Press Start 2P', monospace; font-size: 0.45rem; color: var(--danger); letter-spacing: 0.15em; margin-bottom: 0.4rem; }
@@ -577,6 +616,19 @@
         </div>
       </div>
 
+      <!-- Memory context (Cognee) -->
+      <div id="memory-panel">
+        <div class="memory-header" onclick="toggleMemory()">
+          <span style="font-size:1rem">🧠</span>
+          <span class="memory-title">COGNEE MEMORY CONTEXT</span>
+          <span class="memory-badge" id="memoryBadge">ACTIVE</span>
+          <button class="memory-toggle-btn" id="memoryToggleBtn">▼</button>
+        </div>
+        <div id="memoryBody">
+          <div class="memory-context-text" id="memoryText"></div>
+        </div>
+      </div>
+
       <!-- Errors -->
       <div id="errors-panel">
         <div class="error-title">⚠ PIPELINE ERRORS</div>
@@ -679,11 +731,12 @@ function toggleVault() {
 
 /* ── Run ───────────────────────────────────────────── */
 const MSGS = [
-  'INITIALISING AGENTS','CONNECTING TO BRIGHT DATA',
-  'SCRAPING COMPETITOR INTELLIGENCE','RUNNING GTM ANALYSIS',
-  'FETCHING REGULATORY FEEDS','SCANNING THREAT SURFACE',
-  'AUTONOMOUS DEEP INVESTIGATION','CROSS-REFERENCING SIGNALS',
-  'SYNTHESISING WITH CLAUDE AI','GENERATING EXECUTIVE BRIEF',
+  'INITIALISING AGENTS','RECALLING COGNEE MEMORY',
+  'CONNECTING TO BRIGHT DATA','SCRAPING COMPETITOR INTELLIGENCE',
+  'RUNNING GTM ANALYSIS','FETCHING REGULATORY FEEDS',
+  'SCANNING THREAT SURFACE','AUTONOMOUS DEEP INVESTIGATION',
+  'CROSS-REFERENCING SIGNALS','SYNTHESISING WITH CLAUDE AI',
+  'ENRICHING WITH MEMORY CONTEXT','GENERATING EXECUTIVE BRIEF',
 ];
 let loadingInterval;
 
@@ -746,6 +799,22 @@ function renderReport(d) {
 
   document.getElementById('resultsTarget').textContent = (d.target || '').toUpperCase();
   document.getElementById('resultsReq').textContent = 'ID: ' + (d.request_id || '').substring(0,8).toUpperCase();
+
+  // Memory context panel
+  const memCtx = (d.memory_context || '').trim();
+  const memPanel = document.getElementById('memory-panel');
+  const memBadge = document.getElementById('memoryBadge');
+  if (memCtx) {
+    memPanel.style.display = 'block';
+    document.getElementById('memoryText').textContent = memCtx;
+    memBadge.textContent = 'ACTIVE · ' + memCtx.length + ' CHARS';
+    memBadge.classList.remove('memory-cold');
+  } else {
+    memPanel.style.display = 'block';
+    document.getElementById('memoryText').textContent = 'No historical data found for this target. Run again after this completes to see memory context populate.';
+    memBadge.textContent = 'COLD START';
+    memBadge.classList.add('memory-cold');
+  }
 
   const errs = d.errors || [];
   const errPanel = document.getElementById('errors-panel');
@@ -960,6 +1029,13 @@ function card(cls, icon, title, body) {
   el.className = `track-card ${cls} fade-in`;
   el.innerHTML = `<div class="track-header"><span class="track-icon">${icon}</span><span class="track-name">${title}</span></div>${body}`;
   return el;
+}
+
+let memoryOpen = false;
+function toggleMemory() {
+  memoryOpen = !memoryOpen;
+  document.getElementById('memoryBody').style.display = memoryOpen ? 'block' : 'none';
+  document.getElementById('memoryToggleBtn').textContent = memoryOpen ? '▲' : '▼';
 }
 
 function toggleDetail(btn, id) {
