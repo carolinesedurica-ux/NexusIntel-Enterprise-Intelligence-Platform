@@ -13,6 +13,7 @@ import logging
 from typing import Any, Optional
 
 import anthropic
+import httpx
 
 from config import get_settings
 
@@ -39,19 +40,48 @@ class AIAnalyzer:
         max_tokens: int = 1024,
         use_cache: bool = True,
     ) -> str:
-        """Call Claude and return the text response."""
+        """Call Claude; fall back to AI/ML API on 429."""
         system_block: Any = (
             [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}]
             if use_cache
             else system
         )
-        response = self._client.messages.create(
-            model=self._model,
-            max_tokens=max_tokens,
-            system=system_block,
-            messages=[{"role": "user", "content": user_content}],
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=max_tokens,
+                system=system_block,
+                messages=[{"role": "user", "content": user_content}],
+            )
+            return response.content[0].text.strip()
+        except anthropic.RateLimitError:
+            logger.warning("[AI] Anthropic 429 — retrying via AI/ML API")
+            return self._analyze_via_aiml(system, user_content, max_tokens)
+
+    def _analyze_via_aiml(
+        self, system: str, user_content: str, max_tokens: int = 1024
+    ) -> str:
+        """Fallback: call the same model through AI/ML API (OpenAI-compatible)."""
+        if not settings.aimp_api_key:
+            raise RuntimeError("AI/ML API key not configured (AIMP_API_KEY)")
+        resp = httpx.post(
+            "https://api.aimlapi.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {settings.aimp_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": self._model,
+                "max_tokens": max_tokens,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user_content},
+                ],
+            },
+            timeout=60.0,
         )
-        return response.content[0].text.strip()
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"].strip()
 
     def _analyze_json(
         self,

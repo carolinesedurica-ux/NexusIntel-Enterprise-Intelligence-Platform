@@ -145,7 +145,6 @@ class SERPApi:
     def __init__(self) -> None:
         self._unlocker = WebUnlocker()
 
-    @_retry
     def google_search(
         self,
         query: str,
@@ -153,15 +152,28 @@ class SERPApi:
         country: str = "us",
     ) -> list[dict[str, Any]]:
         """
-        Perform a Google search and return a list of structured results.
-
-        Each result dict has: title, url, snippet, position.
+        Perform a Google search; fall back to Bing on 429 / rate-limit page.
         """
+        try:
+            return self._google_attempt(query, num_results, country)
+        except Exception as exc:
+            err = str(exc).lower()
+            if any(k in err for k in ("429", "sorry", "rate", "too many")):
+                logger.warning("[SERP] Google blocked → Bing fallback: %s", query)
+                return self.bing_search(query, num_results)
+            raise
+
+    @_retry
+    def _google_attempt(
+        self, query: str, num_results: int, country: str
+    ) -> list[dict[str, Any]]:
         url = (
             f"{self._GOOGLE_URL}?q={quote_plus(query)}"
             f"&num={num_results}&gl={country}&hl=en"
         )
         html = self._unlocker.fetch(url, country=country)
+        if "/sorry/" in html or "google.com/sorry" in html:
+            raise RuntimeError("Google rate-limit page detected")
         return self._parse_google_html(html, query)
 
     @_retry
