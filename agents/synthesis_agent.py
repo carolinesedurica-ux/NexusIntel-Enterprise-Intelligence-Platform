@@ -28,7 +28,6 @@ from models.schemas import (
     Track,
 )
 from tools.ai_tools import AIAnalyzer
-from tools.cognee_memory import get_memory
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -70,49 +69,27 @@ class SynthesisAgent:
         """
         logger.info("[SynthesisAgent] Synthesizing report for '%s'", target)
         all_errors = list(errors or [])
-        memory = get_memory()
-
-        # ── Step 0: Recall historical context from Cognee ────────────────────
-        memory_context = ""
-        try:
-            memory_context = memory.recall(
-                target,
-                "threat indicators, competitors, risk scores, compliance changes",
-            )
-            if memory_context:
-                logger.info(
-                    "[SynthesisAgent] Memory recalled %d chars of historical context for '%s'",
-                    len(memory_context), target,
-                )
-        except Exception as exc:
-            logger.debug("[SynthesisAgent] Memory recall skipped: %s", exc)
 
         # Build per-track summary strings for Claude
         gtm_summary = self._gtm_summary_text(gtm) if gtm else "Not run."
         finance_summary = self._finance_summary_text(finance) if finance else "Not run."
         security_summary = self._security_summary_text(security) if security else "Not run."
 
-        # Claude cross-track synthesis — enriched with Cognee memory context
+        # Claude cross-track synthesis
         executive_summary = ""
         top_priorities: list[str] = []
-        memory_trends = ""
         try:
             synthesis = self._ai.synthesize_report(
-                target, gtm_summary, finance_summary, security_summary,
-                memory_context=memory_context,
+                target, gtm_summary, finance_summary, security_summary
             )
             executive_summary = synthesis.get("executive_summary", "")
             top_priorities = synthesis.get("top_priorities", [])
-            memory_trends = synthesis.get("memory_trends", "")
         except Exception as exc:
             logger.warning("[SynthesisAgent] Synthesis failed: %s", exc)
             all_errors.append(f"synthesis:{exc}")
+            # Fallback: concatenate individual summaries
             parts = [s for s in [gtm_summary, finance_summary, security_summary] if s != "Not run."]
             executive_summary = " | ".join(parts[:2])
-
-        # Prepend trend note to executive summary when memory is active
-        if memory_trends and memory_context:
-            executive_summary = f"[Memory trend: {memory_trends}] {executive_summary}"
 
         report = IntelligenceReport(
             request_id=request_id,
@@ -123,25 +100,15 @@ class SynthesisAgent:
             security=security,
             executive_summary=executive_summary,
             top_priorities=top_priorities,
-            memory_context=memory_context,
             errors=all_errors,
         )
 
         # Deliver via configured webhooks
         self._dispatch(report)
 
-        # ── Store report in Cognee for future runs ───────────────────────────
-        # Fire-and-forget: cognify() is slow and must not block the API response
-        try:
-            memory.store_report(report)
-            logger.info("[SynthesisAgent] Report queued for Cognee memory storage")
-        except Exception as exc:
-            logger.debug("[SynthesisAgent] Memory store skipped: %s", exc)
-
         logger.info(
-            "[SynthesisAgent] Report complete | priorities=%d memory=%s errors=%d",
+            "[SynthesisAgent] Report complete | priorities=%d errors=%d",
             len(top_priorities),
-            "active" if memory_context else "cold-start",
             len(all_errors),
         )
         return report

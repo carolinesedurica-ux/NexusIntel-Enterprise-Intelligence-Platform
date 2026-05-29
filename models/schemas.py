@@ -181,6 +181,4 @@ class IntelligenceReport(BaseModel):
     executive_summary: str = ""
     top_priorities: list[str] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
-    # Cognee memory context recalled from past runs (empty on first run)
-    memory_context: str = ""
     generated_at: datetime = Field(default_factory=datetime.utcnow)
