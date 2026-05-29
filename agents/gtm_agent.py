@@ -26,7 +26,7 @@ from models.schemas import (
     CompetitorProfile,
     GTMIntelligence,
 )
-from tools.brightdata_tools import SERPApi, ScrapingBrowser, WebScraperApi, WebUnlocker
+from tools.brightdata_tools import SERPApi, ScrapingBrowser, WebScraperApi, WebUnlocker, run_coro
 from tools.ai_tools import AIAnalyzer
 
 logger = logging.getLogger(__name__)
@@ -193,8 +193,7 @@ class GTMAgent:
             f"https://{domain_guess}",
         ]
 
-        import asyncio
-        html_text = ""
+                html_text = ""
         final_url = urls_to_try[0]
         for url in urls_to_try:
             # Try Web Unlocker first, fall back to Scraping Browser
@@ -205,7 +204,7 @@ class GTMAgent:
             except Exception:
                 pass
             try:
-                html_text = asyncio.run(self._browser.fetch_js_page(url))
+                html_text = run_coro(self._browser.fetch_js_page(url))
                 final_url = url
                 break
             except Exception:

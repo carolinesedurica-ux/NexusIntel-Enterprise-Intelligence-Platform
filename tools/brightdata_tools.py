@@ -13,6 +13,8 @@ into typed Pydantic models.
 """
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
 import json
 import logging
 import ssl
@@ -27,6 +29,22 @@ from config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+
+# ─── Async-safe runner ────────────────────────────────────────────────────────
+
+def run_coro(coro, timeout: int = 90) -> Any:
+    """
+    Run an async coroutine safely from synchronous code.
+
+    Uses a dedicated ThreadPoolExecutor thread so the coroutine always runs
+    in a fresh event loop — avoiding the 'This function is not supported in
+    asynchronous context' error that occurs when asyncio.run() is called
+    from inside FastAPI's already-running event loop.
+    """
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(asyncio.run, coro)
+        return future.result(timeout=timeout)
 
 
 # ─── Retry policy (shared) ───────────────────────────────────────────────────

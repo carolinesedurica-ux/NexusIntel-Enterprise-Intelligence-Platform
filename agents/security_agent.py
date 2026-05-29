@@ -29,8 +29,8 @@ Bright Data tools used:
 """
 from __future__ import annotations
 
-import asyncio
 import logging
+import re
 from typing import Any, Optional
 
 import httpx
@@ -42,7 +42,7 @@ from models.schemas import (
     ThreatIndicator,
     VendorRiskProfile,
 )
-from tools.brightdata_tools import SERPApi, ScrapingBrowser, WebScraperApi, WebUnlocker
+from tools.brightdata_tools import SERPApi, ScrapingBrowser, WebScraperApi, WebUnlocker, run_coro
 from tools.ai_tools import AIAnalyzer
 
 logger = logging.getLogger(__name__)
@@ -244,7 +244,7 @@ class SecurityAgent:
         try:
             cisa_url = _COMPLIANCE_SOURCES[0][1]
             try:
-                html = asyncio.run(self._browser.fetch_js_page(cisa_url))
+                html = run_coro(self._browser.fetch_js_page(cisa_url))
             except Exception:
                 html = self._unlocker.fetch_with_retry(cisa_url)
             analysis = self._ai.analyze_threat_surface(target, html, "CISA Advisories")
@@ -259,20 +259,26 @@ class SecurityAgent:
         except Exception as exc:
             logger.debug("[SecurityAgent] CISA threat scrape failed: %s", exc)
 
-        # NVD / CVE database search via SERP
+        # NVD / CVE database search via SERP — only keep actual CVE/NVD URLs
+        _CVE_DOMAINS = {"nvd.nist.gov", "cve.org", "cve.mitre.org", "cvefeed.io", "cvedetails.com"}
         try:
             nvd_results = self._serp.google_search(
                 f'site:nvd.nist.gov OR site:cve.org "{target}" CVE 2024 2025',
                 num_results=5,
             )
             for r in nvd_results:
+                url = r.get("url", "")
+                from urllib.parse import urlparse
+                domain = urlparse(url).netloc.replace("www.", "")
+                if not any(d in domain for d in _CVE_DOMAINS):
+                    continue
                 indicators.append(ThreatIndicator(
                     indicator_type="cve",
                     value=r.get("title", "")[:100],
-                    source=r.get("url", "NVD"),
+                    source=url or "NVD",
                     severity=Severity.HIGH,
                     description=r.get("snippet", ""),
-                    url=r.get("url"),
+                    url=url or None,
                 ))
         except Exception:
             pass
@@ -293,7 +299,7 @@ class SecurityAgent:
             source_content = self._unlocker.fetch_with_retry(indicator.url)
         except Exception:
             try:
-                source_content = asyncio.run(self._browser.fetch_js_page(indicator.url))
+                source_content = run_coro(self._browser.fetch_js_page(indicator.url))
             except Exception:
                 return []
 
@@ -343,7 +349,19 @@ class SecurityAgent:
             return []
 
         result = self._ai.discover_vendors(target, signals)
-        return result.get("vendors", [])[:5]
+        raw_vendors = result.get("vendors", [])
+
+        # Strip parenthetical domain/URL fragments AI sometimes includes,
+        # e.g. "Google (support.google.com)" → "Google"
+        clean: list[str] = []
+        seen: set[str] = set()
+        for v in raw_vendors:
+            name = re.sub(r"\s*\([^)]*\)", "", str(v)).strip()
+            name = re.sub(r"\s*(https?://\S+)", "", name).strip()
+            if name and name.lower() not in seen and len(name) > 2:
+                seen.add(name.lower())
+                clean.append(name)
+        return clean[:5]
 
     def _monitor_compliance(self, context: Optional[str]) -> list[ComplianceChange]:
         """
@@ -383,7 +401,7 @@ class SecurityAgent:
         for source_name, source_url in _COMPLIANCE_SOURCES:
             try:
                 try:
-                    html = asyncio.run(self._browser.fetch_js_page(source_url))
+                    html = run_coro(self._browser.fetch_js_page(source_url))
                 except Exception:
                     html = self._unlocker.fetch_with_retry(source_url)
 
