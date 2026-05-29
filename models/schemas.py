@@ -142,6 +142,7 @@ class ComplianceChange(BaseModel):
     summary: str
     effective_date: Optional[str] = None
     action_required: str = ""
+    severity: Severity = Severity.LOW
     source_url: Optional[str] = None
     detected_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -152,6 +153,7 @@ class VendorRiskProfile(BaseModel):
     risk_score: float = Field(ge=0.0, le=10.0)
     risk_factors: list[str] = Field(default_factory=list)
     open_issues: list[str] = Field(default_factory=list)
+    recommendation: str = ""
     assessed_at: datetime = Field(default_factory=datetime.utcnow)
 
 

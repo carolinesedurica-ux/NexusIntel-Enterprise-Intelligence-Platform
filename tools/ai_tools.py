@@ -213,11 +213,70 @@ class AIAnalyzer:
         """Extract structured compliance change data from a regulatory page."""
         prompt = (
             f"Regulation/Source: {regulation}\n\nContent:\n{html_text[:3500]}\n\n"
-            "Extract compliance changes. Return JSON:\n"
+            "Extract compliance changes. For each change, provide a specific, actionable "
+            "'action_required' (what a compliance team must DO). Return JSON:\n"
             "{\"changes\": [{\"regulation\": str, \"jurisdiction\": str, "
             "\"summary\": str, \"effective_date\": str|null, \"action_required\": str}]}"
         )
         return self._analyze_json(self._SECURITY_SYSTEM, prompt, max_tokens=600)
+
+    def investigate_threat_indicator(
+        self,
+        target: str,
+        indicator_type: str,
+        indicator_value: str,
+        source_content: str,
+    ) -> dict[str, Any]:
+        """
+        Autonomous deep-dive investigation of a detected threat indicator.
+        Called when the agent finds a HIGH/CRITICAL signal and fetches the source.
+        """
+        prompt = (
+            f"Target organization: {target}\n"
+            f"Initial threat — type: {indicator_type}, value: {indicator_value}\n\n"
+            f"Source content (first 3000 chars):\n{source_content[:3000]}\n\n"
+            "Perform a deep investigation of this threat. Extract ALL related indicators "
+            "confirmed by the evidence, assess actual vs potential exposure, identify affected "
+            "systems or data categories, and specify immediate mitigation steps.\n"
+            "Return JSON:\n"
+            "{\"confirmed_indicators\": [{\"type\": str, \"value\": str, "
+            "\"severity\": \"low|medium|high|critical\", \"description\": str}], "
+            "\"exposure_summary\": str, \"immediate_actions\": [str]}"
+        )
+        return self._analyze_json(self._SECURITY_SYSTEM, prompt, max_tokens=700)
+
+    def discover_vendors(self, target: str, signals: list[str]) -> dict[str, Any]:
+        """
+        Extract third-party vendor and supplier names from web signals about the target.
+        Used for auto-populating vendor risk assessments.
+        """
+        signals_text = "\n".join(f"- {s}" for s in signals[:20])
+        prompt = (
+            f"Organization: {target}\n\n"
+            f"Web intelligence signals about their technology and partners:\n{signals_text}\n\n"
+            "Extract all third-party vendors, suppliers, and technology providers. "
+            "Focus on: cloud providers, SaaS tools, payment processors, data vendors, "
+            "infrastructure providers, and key contractors. Exclude the target itself.\n"
+            "Return JSON: {\"vendors\": [str], \"critical_vendors\": [str]}"
+        )
+        return self._analyze_json(self._SECURITY_SYSTEM, prompt, max_tokens=300)
+
+    def analyze_brand_exposure_structured(
+        self, target: str, raw_findings: list[str]
+    ) -> dict[str, Any]:
+        """Classify raw brand/data exposure findings into a structured risk assessment."""
+        findings_text = "\n".join(f"- {f}" for f in raw_findings[:20])
+        prompt = (
+            f"Target: {target}\n\n"
+            f"Raw exposure findings from web monitoring:\n{findings_text}\n\n"
+            "Classify each finding. Identify: credential leaks, brand impersonation, "
+            "typosquatting domains, GitHub/code leaks, cloud misconfiguration, or data dumps. "
+            "Return JSON:\n"
+            "{\"exposures\": [{\"type\": str, \"description\": str, "
+            "\"severity\": \"low|medium|high|critical\", \"source\": str}], "
+            "\"total_risk\": \"low|medium|high|critical\"}"
+        )
+        return self._analyze_json(self._SECURITY_SYSTEM, prompt, max_tokens=500)
 
     # ── Cross-track synthesis ─────────────────────────────────────────────────
 
